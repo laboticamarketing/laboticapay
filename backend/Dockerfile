@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY uniapp-v5.7.0.zip ./
+
 
 # Install dependencies
 # Note: uniapp zip seems relevant based on file list, but might be legacy?
