@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ATTENDANT
+  MANAGER
+  ADMIN
+  PHARMACIST
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELED
+  EXPIRED
+}
+
+enum ShippingType {
+  DYNAMIC
+  FIXED
+  FREE
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(ATTENDANT)
+  
+  phone     String?
+  avatarUrl String?
+  
+  password_hash String?
+
+  tokenVersion Int @default(1)
+
+  organizationId String? // Future-proofing for multi-tenant
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  orders    Order[]
+  notes     OrderNote[]
+  customerNotes CustomerNote[]
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  phone     String
+  cpf       String?  @unique
+  rg        String?
+  birthDate DateTime?
+  
+  password_hash String? // Added for Client Dashboard access
+  
+  // Address - REMOVED single fields
+  addresses Address[]
+  
+  notes     String? // Added notes field
+  
+  asaasId   String?
+  organizationId String? // Future-proofing
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    Order[]
+  customerNotes CustomerNote[]
+}
+
+model CustomerNote {
+  id        String   @id @default(uuid())
+  
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  content   String
+  
+  authorId  String?
+  author    Profile? @relation(fields: [authorId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+model Address {
+  id        String   @id @default(uuid())
+  
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  type         String   @default("Casa") // Casa, Trabalho, Outro
+  zip          String
+  street       String
+  number       String
+  neighborhood String
+  city         String
+  state        String
+  complement   String?
+  isPrimary    Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  orders    Order[]
+}
+
+model Order {
+  id             String       @id @default(uuid())
+  totalValue     Decimal      @db.Decimal(10, 2)
+  shippingValue  Decimal?     @db.Decimal(10, 2)
+  shippingType   ShippingType @default(DYNAMIC)
+  discountValue  Decimal?     @db.Decimal(10, 2)
+  discountType   String?      // 'FIXED' or 'PERCENTAGE'
+  status         OrderStatus  @default(PENDING)
+  
+  attachmentUrl  String?      // For prescriptions/files
+  organizationId String?      // Future-proofing
+
+  userId         String
+  user           Profile      @relation(fields: [userId], references: [id])
+  
+  customerId     String
+  customer       Customer     @relation(fields: [customerId], references: [id])
+  
+  addressId      String?
+  address        Address?     @relation(fields: [addressId], references: [id])
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  items          OrderItem[]
+  notes          OrderNote[]
+  paymentLink    PaymentLink?
+  transactions   PaymentTransaction[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  
+  name      String
+  dosage    String?
+  actives   Json?
+  price     Decimal? @db.Decimal(10, 2)
+  
+  createdAt DateTime @default(now())
+}
+
+enum NoteAuthor {
+  ATTENDANT
+  CUSTOMER
+}
+
+model OrderNote {
+  id        String     @id @default(uuid())
+  orderId   String
+  order     Order      @relation(fields: [orderId], references: [id])
+  
+  content   String
+  authorType NoteAuthor @default(ATTENDANT)
+  
+  authorId  String?
+  author    Profile?   @relation(fields: [authorId], references: [id])
+  
+  createdAt DateTime   @default(now())
+}
+
+model PaymentLink {
+  id              String   @id @default(uuid())
+  orderId         String   @unique
+  order           Order    @relation(fields: [orderId], references: [id])
+  
+  asaasPaymentId  String?  @unique
+  asaasUrl        String?
+  status          String
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model PaymentTransaction {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  
+  gatewayId String   // Transaction ID from gateway (Asaas Payment ID)
+  type      String   // PIX, BOLETO, CARD
+  status    String   // PENDING, CONFIRMED, FAILED
+  amount    Decimal  @db.Decimal(10, 2)
+  metadata  Json?
+  
+  createdAt DateTime @default(now())
+}
+
+model WebhookEvent {
+  id          String   @id @default(uuid())
+  eventId     String   @unique // Asaas Event ID for idempotency
+  payload     Json
+  processedAt DateTime @default(now())
+  status      String   // SUCCESS, FAILED, IGNORED
+}

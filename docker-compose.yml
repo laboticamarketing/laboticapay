@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: farmapay_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: farmapay
+    ports:
+      - "5433:5432"
+    volumes:
+      - farmapay_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  farmapay_postgres_data:

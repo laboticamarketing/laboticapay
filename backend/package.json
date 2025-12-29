@@ -1,0 +1,44 @@
+{
+  "name": "farmapay-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "start": "node dist/src/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "seed": "ts-node prisma/seed.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/helmet": "^13.0.2",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/multipart": "^9.3.0",
+    "@fastify/rate-limit": "^10.3.0",
+    "@fastify/static": "^9.0.0",
+    "@prisma/client": "^5.7.0",
+    "@supabase/supabase-js": "^2.89.0",
+    "@types/bcryptjs": "^2.4.6",
+    "axios": "^1.13.2",
+    "bcryptjs": "^3.0.3",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.3.1",
+    "fastify": "^5.6.2",
+    "fastify-type-provider-zod": "^6.1.0",
+    "postgres": "^3.4.7",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.27",
+    "nodemon": "^3.0.2",
+    "prisma": "^5.7.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.3"
+  }
+}
