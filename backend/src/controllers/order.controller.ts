@@ -60,7 +60,7 @@ export const createOrder = async (request: FastifyRequest<{ Body: CreateOrderBod
 
         // If no customer data provided, create a PLACEHOLDER customer (Anonymous)
         if (!finalCustomerId) {
-            const placeholder = await customerService.createAnonymous();
+            const placeholder = await customerService.createAnonymous(user.id);
             finalCustomerId = placeholder.id;
         }
 

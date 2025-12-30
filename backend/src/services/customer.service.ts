@@ -41,11 +41,12 @@ export const customerService = {
     /**
      * Creates an anonymous placeholder customer if no data is provided.
      */
-    async createAnonymous() {
+    async createAnonymous(creatorId?: string) {
         return prisma.customer.create({
             data: {
                 name: 'Cliente Não Identificado',
                 phone: '',
+                createdById: creatorId
             }
         });
     }
