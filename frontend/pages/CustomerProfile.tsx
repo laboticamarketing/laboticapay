@@ -44,7 +44,6 @@ interface Customer {
     cpf?: string;
     birthDate?: string;
     addresses?: Address[];
-    addresses?: Address[];
     orders: Order[];
     notes?: string; // Legacy notes
     customerNotes?: {
