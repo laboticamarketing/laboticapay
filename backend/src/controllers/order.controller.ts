@@ -146,9 +146,15 @@ export const listOrders = async (request: FastifyRequest<{ Querystring: { page?:
     const skip = (page - 1) * limit;
     const status = request.query.status as any;
     const search = request.query.search;
+    const user = request.user as { id: string, role: string };
 
     try {
         const whereClause: any = {};
+
+        // Privacy Rule: Attendants can ONLY see their own orders
+        if (user.role === 'ATTENDANT') {
+            whereClause.userId = user.id;
+        }
 
         if (status) {
             whereClause.status = status;

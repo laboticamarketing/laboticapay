@@ -50,6 +50,7 @@ model Profile {
   orders    Order[]
   notes     OrderNote[]
   customerNotes CustomerNote[]
+  createdCustomers Customer[] @relation("CustomerCreator")
 }
 
 model Customer {
@@ -75,6 +76,10 @@ model Customer {
   updatedAt DateTime @updatedAt
 
   orders    Order[]
+  
+  createdById String?
+  createdBy   Profile? @relation("CustomerCreator", fields: [createdById], references: [id])
+
   customerNotes CustomerNote[]
 }
 

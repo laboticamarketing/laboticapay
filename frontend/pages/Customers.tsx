@@ -25,6 +25,7 @@ const maskPhone = (value: string) => {
 export const Customers: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [scope, setScope] = useState<'me' | 'all'>('all');
   const [isLoading, setIsLoading] = useState(false);
 
   // Data State
@@ -41,7 +42,8 @@ export const Customers: React.FC = () => {
       const response = await customerService.list({
         page: currentPage,
         limit: itemsPerPage,
-        search: searchTerm
+        search: searchTerm,
+        scope
       });
       setCustomers(response.data);
       setTotalCustomers(response.meta.total);
@@ -54,11 +56,11 @@ export const Customers: React.FC = () => {
 
   useEffect(() => {
     fetchCustomers();
-  }, [currentPage, searchTerm]);
+  }, [currentPage, searchTerm, scope]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, scope]);
 
   const totalPages = Math.ceil(totalCustomers / itemsPerPage);
 
@@ -81,8 +83,9 @@ export const Customers: React.FC = () => {
         </div>
 
         {/* Toolbar */}
-        <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="relative w-full max-w-lg">
+        <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+          {/* Search */}
+          <div className="relative w-full sm:max-w-lg">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <span className="material-symbols-outlined text-slate-400">search</span>
             </div>
@@ -94,17 +97,36 @@ export const Customers: React.FC = () => {
               type="text"
             />
           </div>
+
+          {/* Scope Toggle */}
+          <div className="flex bg-slate-100 dark:bg-black/20 p-1 rounded-lg">
+            <button
+              onClick={() => setScope('all')}
+              className={`px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${scope === 'all' ? 'bg-white dark:bg-surface-light shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            >
+              <span className="material-symbols-outlined text-[16px]">groups</span>
+              Todos
+            </button>
+            <button
+              onClick={() => setScope('me')}
+              className={`px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${scope === 'me' ? 'bg-white dark:bg-surface-light shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            >
+              <span className="material-symbols-outlined text-[16px]">person</span>
+              Meus Clientes
+            </button>
+          </div>
         </div>
 
         {/* Table */}
         <div className="bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
               <thead className="bg-slate-50 dark:bg-black/20">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nome / Email</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">CPF / Telefone</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data Cadastro</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden md:table-cell">Criado por</th>
                   <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
@@ -131,8 +153,15 @@ export const Customers: React.FC = () => {
                         <div className="text-sm text-slate-900 dark:text-white">{customer.cpf || '-'}</div>
                         <div className="text-xs text-slate-500 dark:text-slate-400">{customer.phone}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
-                        {new Date(customer.createdAt).toLocaleDateString()}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 hidden md:table-cell">
+                        {customer.createdBy ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800">
+                            <span className="material-symbols-outlined text-[14px]">face</span>
+                            {customer.createdBy.name?.split(' ')[0]}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">Sistema / Legado</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button

@@ -12,8 +12,11 @@ export const createCustomer = async (request: FastifyRequest<{ Body: { name: str
             return reply.status(409).send({ message: 'Customer already exists' });
         }
 
+        const user = request.user as { id: string };
+
         const customer = await prisma.customer.create({
             data: {
+                createdById: user.id,
                 name,
                 email,
                 phone,
@@ -96,12 +99,19 @@ export const updateCustomer = async (request: FastifyRequest<{ Params: { id: str
     }
 };
 
-export const listCustomers = async (request: FastifyRequest<{ Querystring: { search?: string; page?: number; limit?: number } }>, reply: FastifyReply) => {
-    const { search, page = 1, limit = 10 } = request.query;
+export const listCustomers = async (request: FastifyRequest<{ Querystring: { search?: string; page?: number; limit?: number; scope?: 'me' | 'all' } }>, reply: FastifyReply) => {
+    const { search, page = 1, limit = 10, scope } = request.query;
     const skip = (page - 1) * limit;
+    const user = request.user as { id: string };
 
     try {
         const whereClause: any = {};
+
+        // Scope Filter
+        if (scope === 'me') {
+            whereClause.createdById = user.id;
+        }
+
         if (search) {
             whereClause.OR = [
                 { name: { contains: search, mode: 'insensitive' } },
@@ -116,7 +126,10 @@ export const listCustomers = async (request: FastifyRequest<{ Querystring: { sea
                 skip: Number(skip),
                 take: Number(limit),
                 orderBy: { createdAt: 'desc' },
-                include: { addresses: true } // Include addresses in list for display if needed
+                include: {
+                    addresses: true,
+                    createdBy: { select: { id: true, name: true } }
+                } // Include addresses and creator in list
             }),
             prisma.customer.count({ where: whereClause })
         ]);

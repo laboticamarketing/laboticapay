@@ -22,6 +22,12 @@ export interface Customer {
     notes?: string | null;
     asaasId: string | null;
     createdAt: string;
+    // New fields
+    createdBy?: {
+        id: string;
+        name: string;
+    };
+    createdById?: string;
 }
 
 export interface CustomerListResponse {
@@ -50,4 +56,5 @@ export interface CustomerParams {
     page?: number;
     limit?: number;
     search?: string;
+    scope?: 'me' | 'all';
 }
