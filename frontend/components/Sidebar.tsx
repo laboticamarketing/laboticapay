@@ -251,36 +251,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, setRole, isOpen, onClose
                         )}
                     </nav>
 
-                    {/* Mobile/Tablet-only Role Switcher inside Sidebar */}
-                    <div className="lg:hidden mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
-                        <p className="px-3 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Alternar Perfil (Demo)</p>
-                        <div className="grid grid-cols-2 gap-2 px-1">
-                            <button
-                                onClick={() => setRole('attendant')}
-                                className={`px-2 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1 ${role === 'attendant' ? 'bg-primary border-primary text-slate-900' : 'border-slate-200 dark:border-slate-700 text-slate-500'}`}
-                            >
-                                <span className="material-symbols-outlined text-[16px]">support_agent</span> Atendente
-                            </button>
-                            <button
-                                onClick={() => setRole('manager')}
-                                className={`px-2 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1 ${role === 'manager' ? 'bg-primary border-primary text-slate-900' : 'border-slate-200 dark:border-slate-700 text-slate-500'}`}
-                            >
-                                <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span> Gerente
-                            </button>
-                            <button
-                                onClick={() => setRole('admin')}
-                                className={`px-2 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1 ${role === 'admin' ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-500'}`}
-                            >
-                                <span className="material-symbols-outlined text-[16px]">shield_person</span> Admin
-                            </button>
-                            <button
-                                onClick={() => navigate('/checkout')}
-                                className="px-2 py-2 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700 text-slate-500 transition-all flex items-center justify-center gap-1 hover:bg-slate-50 dark:hover:bg-slate-800"
-                            >
-                                <span className="material-symbols-outlined text-[16px]">shopping_cart</span> Checkout
-                            </button>
-                        </div>
-                    </div>
+                    {/* Mobile/Tablet-only Role Switcher REMOVED */}
                 </div>
 
                 <div className="mt-auto p-4 border-t border-slate-100 dark:border-slate-800 shrink-0">

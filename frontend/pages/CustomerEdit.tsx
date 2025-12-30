@@ -556,10 +556,11 @@ export const CustomerEdit: React.FC = () => {
                 <div className="h-24"></div>
 
                 {/* Footer Actions */}
-                <div className="fixed bottom-0 right-0 left-0 md:left-72 bg-white dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 p-4 flex justify-end gap-3 z-10 shadow-lg">
+                {/* Footer Actions */}
+                <div className="sticky bottom-0 -mx-4 md:-mx-8 px-4 md:px-8 bg-white dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 py-4 flex justify-end gap-3 z-10 shadow-lg mt-auto">
                     <button
                         type="button"
-                        onClick={() => navigate('/customer-profile')}
+                        onClick={() => navigate('/customers')}
                         className="px-6 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                     >
                         Cancelar

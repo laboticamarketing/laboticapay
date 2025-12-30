@@ -92,16 +92,16 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, on
   const totalValue = totalFormula - discountAmount + Number(order.shippingValue || 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-6">
       <div
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       ></div>
 
-      <div className="relative bg-white dark:bg-surface-dark w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-white dark:bg-surface-dark w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-5xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800 shrink-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">Detalhes do Pedido</h2>
             <div className="flex items-center gap-2 mt-1">

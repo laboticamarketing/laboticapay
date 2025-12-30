@@ -19,10 +19,10 @@ export const Layout: React.FC<LayoutProps> = ({ role, setRole }) => {
         {/* Mobile Header - Sticky and visible only on mobile/tablet (lg:hidden) */}
         <div className="lg:hidden bg-surface-light dark:bg-surface-dark border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between shrink-0 z-20 sticky top-0">
           <div className="flex items-center gap-2">
-            <div className="size-8 text-primary flex items-center justify-center bg-primary/10 rounded-lg">
-              <span className="material-symbols-outlined">local_pharmacy</span>
+            <div className="h-8 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="h-full w-auto object-contain" />
             </div>
-            <span className="font-bold text-slate-900 dark:text-white text-lg">FarmaPay</span>
+            <span className="font-bold text-slate-900 dark:text-white text-lg">La Botica Pay</span>
           </div>
           <button
             onClick={() => setIsSidebarOpen(true)}
