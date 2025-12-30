@@ -5,23 +5,28 @@ import { authService } from '../src/services/auth.service';
 export const Profile: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({ name: '', phone: '', email: '' });
   const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
+  const fetchProfile = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await authService.getProfile();
+      setUser(data);
+      setFormData({ name: data.name || '', phone: data.phone || '', email: data.email });
+      if (data.avatarUrl) setAvatarPreview(data.avatarUrl);
+    } catch (error) {
+      console.error('Failed to fetch profile', error);
+      setError('Falha ao carregar perfil. Verifique sua conexão.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await authService.getProfile();
-        setUser(data);
-        setFormData({ name: data.name || '', phone: data.phone || '', email: data.email });
-        if (data.avatarUrl) setAvatarPreview(data.avatarUrl);
-      } catch (error) {
-        console.error('Failed to fetch profile', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProfile();
   }, []);
 
@@ -120,9 +125,21 @@ export const Profile: React.FC = () => {
     return <div className="flex justify-center p-12"><span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span></div>;
   }
 
+  if (error || !user) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-center h-[60vh]">
+        <div className="size-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
+          <span className="material-symbols-outlined text-3xl">error</span>
+        </div>
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Erro ao carregar perfil</h3>
+        <p className="text-slate-500 mb-6">{error || 'Não foi possível identificar o usuário.'}</p>
+        <button onClick={fetchProfile} className="px-6 py-2 bg-primary text-slate-900 font-bold rounded-lg hover:bg-primary-dark transition-colors">
+          Tentar Novamente
+        </button>
+      </div>
+    );
+  }
 
-  // Fallback for null user (shouldn't happen if auth worked)
-  if (!user) return null;
   return (
     <div className="max-w-[960px] mx-auto flex flex-col gap-6 pb-40 p-4 md:p-8">
       {/* Breadcrumbs */}
