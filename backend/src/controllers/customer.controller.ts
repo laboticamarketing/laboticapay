@@ -165,7 +165,8 @@ export const getCustomer = async (request: FastifyRequest<{ Params: { id: string
                 customerNotes: {
                     include: { author: true },
                     orderBy: { createdAt: 'desc' }
-                }
+                },
+                createdBy: { select: { id: true, name: true } }
             }
         });
 

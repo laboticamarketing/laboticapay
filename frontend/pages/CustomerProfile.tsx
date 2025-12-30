@@ -53,6 +53,10 @@ interface Customer {
         createdAt: string;
         author?: { name: string };
     }[];
+    createdBy?: {
+        id: string;
+        name: string;
+    };
 }
 
 export const CustomerProfile: React.FC = () => {
@@ -239,6 +243,16 @@ export const CustomerProfile: React.FC = () => {
                             <div className="flex items-center justify-center md:justify-start gap-2">
                                 <span className="material-symbols-outlined text-[18px]">badge</span>
                                 {customer.cpf || 'CPF não informado'}
+                            </div>
+                            <div className="flex items-center justify-center md:justify-start gap-2">
+                                <span className="material-symbols-outlined text-[18px]">face</span>
+                                {customer.createdBy ? (
+                                    <span className="text-slate-600 dark:text-slate-300">
+                                        Criado por: <span className="font-bold">{customer.createdBy.name}</span>
+                                    </span>
+                                ) : (
+                                    <span className="text-slate-400 italic">Criado pelo Sistema</span>
+                                )}
                             </div>
                         </div>
                     </div>
