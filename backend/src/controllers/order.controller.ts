@@ -52,7 +52,8 @@ export const createOrder = async (request: FastifyRequest<{ Body: CreateOrderBod
                 name: newCustomer.name,
                 phone: newCustomer.phone,
                 email: newCustomer.email,
-                cpf: newCustomer.cpf
+                cpf: newCustomer.cpf,
+                createdById: user.id
             });
             finalCustomerId = customer.id;
         }

@@ -5,6 +5,7 @@ interface CreateCustomerDTO {
     phone: string;
     email?: string;
     cpf?: string;
+    createdById?: string;
 }
 
 export const customerService = {
@@ -31,7 +32,8 @@ export const customerService = {
                 name: data.name,
                 phone: data.phone,
                 email: email,
-                cpf: cpf
+                cpf: cpf,
+                createdById: data.createdById
             }
         });
     },
