@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { prisma } from '../server';
+import { prisma } from '../lib/prisma';
+import { config } from '../config/env';
 
 interface AsaasWebhookPayload {
     event: string;
@@ -19,7 +20,7 @@ export const handleAsaasWebhook = async (request: FastifyRequest<{ Body: AsaasWe
     const asaasAccessToken = request.headers['asaas-access-token'];
 
     // 1. Security Check
-    if (process.env.ASAAS_WEBHOOK_SECRET && asaasAccessToken !== process.env.ASAAS_WEBHOOK_SECRET) {
+    if (config.asaas.webhookSecret && asaasAccessToken !== config.asaas.webhookSecret) {
         return reply.status(401).send({ error: 'Unauthorized' });
     }
 

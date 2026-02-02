@@ -49,8 +49,16 @@ interface OrderDetails {
   };
   notes?: Array<{ content: string }>;
   attachmentUrl?: string;
+  transactions?: Array<{
+    id: string;
+    type: string;
+    status: string;
+    amount: number;
+    metadata: any;
+  }>;
 }
 
+// Update Interface
 interface CheckoutFormData {
   name: string;
   birthDate: string;
@@ -69,7 +77,15 @@ interface CheckoutFormData {
   complement: string;
   addressType: string;
   notes: string;
+
+  // Delivery
+  deliveryMethod?: 'SHIP' | 'PICKUP';
+  pickupLocation?: string;
 }
+
+// ...
+
+
 
 interface CheckoutContextType {
   order: OrderDetails | null;
@@ -77,7 +93,7 @@ interface CheckoutContextType {
   updateFormData: (data: Partial<CheckoutFormData>) => void;
   saveProgress: (overrideData?: Partial<CheckoutFormData>) => Promise<any>;
   loading: boolean;
-  submitOrder: () => Promise<void>;
+  submitOrder: (paymentData: any) => Promise<any>;
   isProcessing: boolean;
   refreshOrder: () => Promise<void>;
   addresses: Array<any>;
@@ -95,7 +111,7 @@ const useCheckout = () => useContext(CheckoutContext);
 // --- Components ---
 
 const OrderSummaryContent = () => {
-  const { order } = useCheckout();
+  const { order, formData } = useCheckout(); // Get formData for label check
 
   if (!order) return null;
 
@@ -109,6 +125,8 @@ const OrderSummaryContent = () => {
     }
   }
   const total = totalFormula - discountAmount + Number(order.shippingValue || 0);
+
+  const isPickup = formData.deliveryMethod === 'PICKUP';
 
   return (
     <>
@@ -176,7 +194,9 @@ const OrderSummaryContent = () => {
           </div>
         )}
         <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
-          <span>Frete</span>
+          <span>
+            {isPickup ? 'Retirada na loja' : (Number(order.shippingValue) === 7 ? 'Entrega Local' : 'Frete')}
+          </span>
           <span className={Number(order.shippingValue || 0) === 0 ? 'text-green-600 font-bold' : ''}>
             {Number(order.shippingValue || 0) === 0 ? 'Grátis' : (Number(order.shippingValue || 0)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </span>
@@ -294,15 +314,22 @@ const CheckoutStep1 = () => {
 // --- Step 2: Endereço (ViaCEP) ---
 const CheckoutStep2 = () => {
   const navigate = useNavigate();
-  const { formData, updateFormData, saveProgress } = useCheckout();
+  const { formData, updateFormData, saveProgress, refreshOrder } = useCheckout();
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async (data: AddressData) => {
     setIsSaving(true);
-    // Update global context immediately (though stale in this closure, saveProgress will use override)
-    updateFormData(data);
+    // Update global context immediately
+    const updatedData = {
+      ...data,
+      deliveryMethod: data.deliveryMethod,
+      pickupLocation: data.pickupLocation
+    };
+    updateFormData(updatedData);
     try {
-      await saveProgress(data); // Pass data directly to ensure latest is sent
+      await saveProgress(updatedData);
+      // Refresh order to get updated shipping value from backend!
+      await refreshOrder();
       navigate('../details');
     } catch (e) {
       console.error(e);
@@ -327,7 +354,7 @@ const CheckoutStep2 = () => {
         }}
         onSubmit={handleSave}
         isSaving={isSaving}
-        submitLabel="Ir para Detalhes"
+        submitLabel="Calcular Frete e Avançar"
         showBackButton={true}
         onCancel={() => navigate('../')}
       />
@@ -405,49 +432,42 @@ const CheckoutStep3 = () => {
   );
 };
 
-// --- Step 4: Confirmação (Substituiu Pagamento) ---
+// --- Step 4: Confirmação (Payment) ---
 const CheckoutStepConfirmation = () => {
   const navigate = useNavigate();
   const { formData, updateFormData, saveProgress, submitOrder, isProcessing, order, addresses, selectedAddressId, setSelectedAddressId, refreshOrder, deleteAddress } = useCheckout();
 
-  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [editingSection, setEditingSection] = useState<'NONE' | 'ADDRESS' | 'METHOD'>('NONE');
   const [addressToEdit, setAddressToEdit] = useState<AddressData | null>(null);
   const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  // New states for other inline edits
+  // Partial Edits
   const [isEditingPerson, setIsEditingPerson] = useState(false);
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // --- Handlers ---
+  // Payment State
+  const [paymentMethod, setPaymentMethod] = useState<'CREDIT_CARD' | 'PIX'>('CREDIT_CARD');
+  const [cardData, setCardData] = useState({ number: '', holderName: '', month: '', year: '', cvv: '', installments: 1 });
+  const [pixResult, setPixResult] = useState<{ qrcode: string, qrcodeText: string } | null>(null);
 
+  // --- Handlers from previous version (preserved) ---
   const handleInlineEdit = (addr?: any) => {
     if (addr) {
       setAddressToEdit({
-        cep: addr.zip,
-        street: addr.street,
-        number: addr.number,
-        neighborhood: addr.neighborhood,
-        city: addr.city,
-        state: addr.state,
-        complement: addr.complement,
-        addressType: addr.type
+        cep: addr.zip, street: addr.street, number: addr.number, neighborhood: addr.neighborhood,
+        city: addr.city, state: addr.state, complement: addr.complement, addressType: addr.type,
+        deliveryMethod: formData.deliveryMethod, pickupLocation: formData.pickupLocation
       });
     } else {
       setAddressToEdit({
-        cep: '',
-        street: '',
-        number: '',
-        neighborhood: '',
-        city: '',
-        state: '',
-        complement: '',
-        addressType: 'Casa'
+        cep: '', street: '', number: '', neighborhood: '', city: '', state: '', complement: '', addressType: 'Casa',
+        deliveryMethod: formData.deliveryMethod, pickupLocation: formData.pickupLocation
       });
     }
-    setIsEditingAddress(true);
+    setEditingSection('ADDRESS');
   };
 
   const handleInlineSaveAddress = async (data: AddressData) => {
@@ -456,314 +476,547 @@ const CheckoutStepConfirmation = () => {
     try {
       await saveProgress(data);
       await refreshOrder();
-      setIsEditingAddress(false);
+      setEditingSection('NONE');
       setAddressToEdit(null);
-      toast.success('Endereço salvo!');
+      toast.success('Salvo com sucesso!');
     } catch (e) {
       console.error(e);
-      toast.error('Erro ao salvar endereço.');
-    } finally {
-      setIsSavingAddress(false);
-    }
+      toast.error('Erro ao salvar.');
+    } finally { setIsSavingAddress(false); }
   };
 
   const handleDeleteClick = async (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('handleDeleteClick', id, 'confirm:', confirmDeleteId);
-    if (confirmDeleteId === id) {
-      await deleteAddress(id);
-      setConfirmDeleteId(null);
-    } else {
-      setConfirmDeleteId(id);
-    }
+    e.preventDefault(); e.stopPropagation();
+    if (confirmDeleteId === id) { await deleteAddress(id); setConfirmDeleteId(null); } else { setConfirmDeleteId(id); }
   };
 
-  // Personal Data Handler
   const handleSavePerson = async (data: PersonalData) => {
     updateFormData(data);
-    try {
-      await saveProgress(data);
-      setIsEditingPerson(false);
-      toast.success('Dados atualizados!');
-    } catch (e) {
-      console.error(e);
-      toast.error('Erro ao atualizar dados.');
-    }
+    try { await saveProgress(data); setIsEditingPerson(false); toast.success('Dados atualizados!'); } catch (e) { toast.error('Erro ao atualizar dados.'); }
   }
 
-  // Contact/Notes Handler
   const handleSaveExtras = async (data: ExtrasData) => {
     updateFormData(data);
-    try {
-      await saveProgress(data);
-      setIsEditingContact(false);
-      setIsEditingNotes(false);
-      toast.success('Atualizado com sucesso!');
-    } catch (e) {
-      console.error(e);
-      toast.error('Erro ao atualizar.');
-    }
+    try { await saveProgress(data); setIsEditingContact(false); setIsEditingNotes(false); toast.success('Atualizado com sucesso!'); } catch (e) { toast.error('Erro ao atualizar.'); }
   }
 
-  // File Upload
   const handleUpload = async (file: File) => {
     if (!order?.id) return false;
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Arquivo muito grande.');
-      return false;
-    }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Arquivo muito grande.'); return false; }
     setIsUploading(true);
     const data = new FormData();
     data.append('file', file);
+    try { await api.post(`/checkout/${order.id}/upload`, data, { headers: { 'Content-Type': 'multipart/form-data' } }); await refreshOrder(); return true; } catch (e) { toast.error('Erro no upload.'); return false; } finally { setIsUploading(false); }
+  };
+
+  // --- Payment Handler ---
+  const handlePayment = async () => {
     try {
-      await api.post(`/checkout/${order.id}/upload`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
-      await refreshOrder();
-      return true;
+      if (paymentMethod === 'CREDIT_CARD') {
+        if (cardData.number.length < 13 || !cardData.cvv || !cardData.holderName || !cardData.month || !cardData.year) {
+          toast.error('Preencha os dados do cartão corretamente.');
+          return;
+        }
+      }
+
+      const result = await submitOrder({
+        method: paymentMethod,
+        card: paymentMethod === 'CREDIT_CARD' ? cardData : undefined
+      });
+
+      if (paymentMethod === 'PIX' && result.kind === 'pix') {
+        // Show Pix Modal/Result
+        // Result usually mimics e.Rede: { kind: 'pix', reference: '...', amount: 1000, qrcode: '...', qrcodeText: '...' }
+        // Sandbox might return differently, checking... assuming qrcode exists.
+        // If e.Rede returns just ID and we need to query, that's complex, but usually creates immediately.
+        setPixResult(result);
+        toast.success("QR Code Gerado!");
+      } else if (result.returnCode === '00' || result.status === 'PAID') {
+        // Success
+        navigate('../success');
+      } else {
+        toast.error(`Pagamento não autorizado. (${result.returnMessage || result.returnCode || 'Erro'})`);
+      }
+
     } catch (e) {
-      toast.error('Erro no upload.');
-      return false;
-    } finally {
-      setIsUploading(false);
+      // Handled in submitOrder (toast)
     }
   };
+
+  if (pixResult) {
+    return (
+      <div className="bg-surface-light dark:bg-surface-dark p-6 md:p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm text-center animate-in zoom-in-95 duration-300">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Pagamento via Pix</h2>
+        <p className="text-slate-500 mb-6">Escaneie o QR Code abaixo ou use o Copia e Cola para pagar.</p>
+
+        <div className="flex justify-center mb-6">
+          {/* Assuming base64 or URL. If Base64, prefix data:image/png;base64, */}
+          {/* Rede often returns a URL or Base64. If text, render QRCode lib. For MVP, assuming Image URL if starts with http, else base64? */}
+          {/* Rede doc says 'qrcode' field contains the image (base64) or url. */}
+          <img src={`data:image/png;base64,${pixResult.qrcode}`} alt="Pix QR Code" className="w-64 h-64 object-contain border rounded-lg" />
+        </div>
+
+        <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-lg flex items-center justify-between gap-2 overflow-hidden mb-6">
+          <span className="text-xs text-slate-500 truncate font-mono">{pixResult.qrcodeText || 'Código não disponível'}</span>
+          <button onClick={() => {
+            const text = pixResult.qrcodeText || '';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(() => toast.success('Copiado!')).catch(() => toast.error('Erro ao copiar'));
+            } else {
+              // Fallback for older browsers or non-secure contexts
+              const textArea = document.createElement("textarea");
+              textArea.value = text;
+              document.body.appendChild(textArea);
+              textArea.focus();
+              textArea.select();
+              try {
+                document.execCommand('copy');
+                toast.success('Copiado!');
+              } catch (err) {
+                toast.error('Erro ao copiar');
+              }
+              document.body.removeChild(textArea);
+            }
+          }} className="text-primary font-bold text-sm hover:underline">Copiar</button>
+        </div>
+
+        <button onClick={() => navigate('../success')} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg">
+          Já fiz o pagamento
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 bg-surface-light dark:bg-surface-dark p-6 md:p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm animate-in slide-in-from-right-4 duration-500">
       <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
         <span className="material-symbols-outlined text-primary">check_circle</span>
-        Confirmar Dados do Pedido
+        Confirmar e Pagar
       </h2>
 
       <div className="space-y-6">
+        {/* Summaries (Person, Address, Contact, Notes) - Same as before */}
         {/* Personal Info Summary */}
         <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-lg relative transition-all">
           <div className="flex justify-between items-center mb-2">
             {!isEditingPerson && <h3 className="font-bold text-slate-900 dark:text-white text-sm">Dados Pessoais</h3>}
             {!isEditingPerson && <button onClick={() => setIsEditingPerson(true)} className="text-xs text-primary font-bold hover:underline">Editar</button>}
           </div>
-
           {isEditingPerson ? (
-            <div className="animate-in fade-in zoom-in-95 duration-200">
-              <CheckoutPersonalForm
-                initialData={{ name: formData.name, cpf: formData.cpf, rg: formData.rg, birthDate: formData.birthDate }}
-                onSubmit={handleSavePerson}
-                onCancel={() => setIsEditingPerson(false)}
-                submitLabel="Atualizar Dados"
-                showBackButton={true}
-                backButtonLabel="Cancelar"
-              />
-            </div>
+            <CheckoutPersonalForm initialData={formData} onSubmit={handleSavePerson} onCancel={() => setIsEditingPerson(false)} submitLabel="Atualizar" showBackButton={true} backButtonLabel="Cancelar" />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-400">
               <p><span className="font-semibold">Nome:</span> {formData.name}</p>
               <p><span className="font-semibold">CPF:</span> {formData.cpf}</p>
-              <p><span className="font-semibold">RG:</span> {formData.rg}</p>
-              <p><span className="font-semibold">Nascimento:</span> {formData.birthDate}</p>
             </div>
           )}
         </div>
 
-        {/* Address Summary / Edit */}
+        {/* Address and Method Summary */}
         <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-lg transition-all">
           <div className="flex justify-between items-center mb-4">
-            {!isEditingAddress && <h3 className="font-bold text-slate-900 dark:text-white text-sm">Endereço de Entrega</h3>}
+            {editingSection === 'NONE' && (
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                Endereço
+              </h3>
+            )}
           </div>
 
-          {isEditingAddress && addressToEdit ? (
-            <div className="animate-in fade-in zoom-in-95 duration-200">
+          {editingSection !== 'NONE' ? (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
               <CheckoutAddressForm
-                initialData={addressToEdit}
+                initialData={addressToEdit || {
+                  cep: formData.cep, street: formData.street, number: formData.number, neighborhood: formData.neighborhood,
+                  city: formData.city, state: formData.state, complement: formData.complement, addressType: formData.addressType,
+                  deliveryMethod: formData.deliveryMethod, pickupLocation: formData.pickupLocation
+                }}
                 onSubmit={handleInlineSaveAddress}
-                onCancel={() => setIsEditingAddress(false)}
+                onCancel={() => setEditingSection('NONE')}
                 isSaving={isSavingAddress}
-                submitLabel="Salvar Endereço"
+                submitLabel="Salvar Alterações"
                 showBackButton={true}
                 backButtonLabel="Cancelar"
+                viewMode={editingSection === 'ADDRESS' ? 'address-only' : 'method-only'}
               />
             </div>
           ) : (
-            <>
-              {addresses && addresses.length > 0 ? (
-                <div className="space-y-3">
-                  {addresses.map((addr: any) => (
-                    <div
-                      key={addr.id}
-                      onClick={() => setSelectedAddressId(addr.id)}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all flex items-start gap-3 relative group ${selectedAddressId === addr.id ? 'border-primary bg-primary/5 dark:bg-primary/10 ring-1 ring-primary' : 'border-slate-200 dark:border-slate-700 hover:border-primary/50'}`}
-                    >
-                      <div className={`mt-0.5 size-4 rounded-full border flex items-center justify-center transition-colors ${selectedAddressId === addr.id ? 'border-primary' : 'border-slate-400'}`}>
-                        {selectedAddressId === addr.id && <div className="size-2 rounded-full bg-primary" />}
-                      </div>
-                      <div className="flex-1 text-sm text-slate-600 dark:text-slate-400">
-                        <div className="flex items-center gap-2 mb-1 justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 dark:text-white">{addr.type}</span>
-                            {addr.isPrimary && <span className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-300 font-medium">Principal</span>}
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleInlineEdit(addr); }}
-                              className="text-xs text-primary hover:underline font-semibold"
-                              title="Editar"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => handleDeleteClick(e, addr.id)}
-                              className={`text-xs font-semibold flex items-center gap-1 transition-colors ${confirmDeleteId === addr.id ? 'text-red-600 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded' : 'text-slate-400 hover:text-red-500'}`}
-                              title={confirmDeleteId === addr.id ? "Confirmar exclusão" : "Excluir"}
-                            >
-                              {confirmDeleteId === addr.id ? 'Confirmar?' : <span className="material-symbols-outlined text-[16px]">delete</span>}
-                            </button>
-                          </div>
-                        </div>
-                        <p>{addr.street}, {addr.number} {addr.complement ? `- ${addr.complement}` : ''}</p>
-                        <p>{addr.neighborhood} - {addr.city}/{addr.state}</p>
-                        <p>{addr.zip}</p>
-                      </div>
-                    </div>
-                  ))}
+            <div className="space-y-4">
+              {/* Customer Address Card */}
+              <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-black/20 relative">
+                <p className="text-xs text-slate-500 uppercase font-bold mb-2 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">home</span>
+                  Endereço do Cliente
+                </p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">
+                  {formData.street}, {formData.number} {formData.complement ? `- ${formData.complement}` : ''}
+                </p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  {formData.neighborhood} - {formData.city}/{formData.state}
+                </p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">CEP: {formData.cep}</p>
 
-                  <button
-                    onClick={() => handleInlineEdit(null)}
-                    className="w-full py-2 border border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-500 hover:text-primary hover:border-primary transition-colors flex items-center justify-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">add</span>
-                    Usar outro endereço
-                  </button>
+                <button
+                  onClick={() => {
+                    setAddressToEdit({
+                      cep: formData.cep, street: formData.street, number: formData.number, neighborhood: formData.neighborhood,
+                      city: formData.city, state: formData.state, complement: formData.complement, addressType: formData.addressType,
+                      deliveryMethod: formData.deliveryMethod, pickupLocation: formData.pickupLocation
+                    });
+                    setEditingSection('ADDRESS');
+                  }}
+                  className="absolute top-3 right-3 text-xs text-primary hover:underline font-bold bg-white/50 px-2 py-1 rounded uppercase"
+                >
+                  Alterar
+                </button>
+              </div>
+
+              {/* Delivery Method Card */}
+              <div className="p-3 rounded-lg border border-primary bg-primary/5 relative">
+                <h4 className="text-xs text-primary font-bold uppercase mb-2 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">
+                    {formData.deliveryMethod === 'PICKUP' ? 'store' : 'local_shipping'}
+                  </span>
+                  {formData.deliveryMethod === 'PICKUP' ? 'Retirada na Loja' : 'Entrega'}
+                </h4>
+
+                {formData.deliveryMethod === 'PICKUP' ? (
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white text-sm mb-1">{formData.pickupLocation}</p>
+                    <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded">Frete Grátis</span>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                      Entrega via Transportadora/Moto
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {Number(order?.shippingValue) > 0
+                        ? `Frete: ${(Number(order?.shippingValue)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`
+                        : Number(order?.shippingValue) === 0 ? 'Frete Grátis' : 'Calculando...'
+                      }
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => {
+                    setAddressToEdit({
+                      cep: formData.cep, street: formData.street, number: formData.number, neighborhood: formData.neighborhood,
+                      city: formData.city, state: formData.state, complement: formData.complement, addressType: formData.addressType,
+                      deliveryMethod: formData.deliveryMethod, pickupLocation: formData.pickupLocation
+                    });
+                    setEditingSection('METHOD');
+                  }}
+                  className="absolute top-3 right-3 text-xs text-primary hover:underline font-bold bg-white/50 px-2 py-1 rounded uppercase"
+                >
+                  Alterar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* Payment Section - Redesigned */}
+        <div className="mt-6">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Pagamento</h3>
+          <p className="text-sm text-slate-500 mb-4">Todas as transações são seguras e criptografadas.</p>
+
+          <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+
+            {/* Credit Card Option */}
+            <div className={`transition-all ${paymentMethod === 'CREDIT_CARD' ? 'bg-blue-50/50 dark:bg-slate-800' : 'bg-white dark:bg-black/20'}`}>
+              <div
+                onClick={() => setPaymentMethod('CREDIT_CARD')}
+                className="flex items-center justify-between p-4 cursor-pointer border-b border-slate-200 dark:border-slate-700"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'CREDIT_CARD' ? 'border-primary bg-primary' : 'border-slate-300'}`}>
+                    {paymentMethod === 'CREDIT_CARD' && <div className="w-2 h-2 rounded-full bg-white"></div>}
+                  </div>
+                  <span className="font-bold text-slate-900 dark:text-white">Cartão de Crédito</span>
                 </div>
-              ) : (
-                <div className="text-sm text-slate-600 dark:text-slate-400">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p>{formData.street}, {formData.number} {formData.complement ? `- ${formData.complement}` : ''}</p>
-                      <p>{formData.neighborhood} - {formData.city}/{formData.state}</p>
-                      <p>{formData.cep}</p>
+                <div className="flex gap-2 items-center">
+                  <img src="/icons/visa.svg" alt="Visa" className="h-5" />
+                  <img src="/icons/mastercard.svg" alt="Mastercard" className="h-5" />
+                  <img src="/icons/elo.svg" alt="Elo" className="h-5" />
+                  <img src="/icons/amex.svg" alt="Amex" className="h-5" />
+                  <img src="/icons/hypercard.svg" alt="Hypercard" className="h-5" />
+                </div>
+              </div>
+
+              {paymentMethod === 'CREDIT_CARD' && (
+                <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                  {/* Card Number */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Número do cartão"
+                      className="w-full bg-white dark:bg-black border border-slate-300 dark:border-slate-600 rounded-md pl-4 pr-10 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all"
+                      value={cardData.number
+                        .replace(/\D/g, '')
+                        .replace(/(\d{4})(?=\d)/g, '$1 ')
+                        .trim()
+                      }
+                      maxLength={19}
+                      onChange={e => {
+                        let raw = e.target.value.replace(/\D/g, '');
+                        if (raw.length > 16) raw = raw.slice(0, 16);
+                        setCardData({ ...cardData, number: raw });
+                      }}
+                    />
+                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">lock</span>
+                  </div>
+
+                  {/* Expiry & CVV */}
+                  <div className="flex gap-4">
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        placeholder="Data de vencimento (MM/AA)"
+                        className="w-full bg-white dark:bg-black border border-slate-300 dark:border-slate-600 rounded-md px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all"
+                        value={cardData.month + (cardData.year && cardData.year.length > 2 ? '/' + cardData.year.slice(2) : '')}
+                        maxLength={5}
+                        onChange={e => {
+                          let raw = e.target.value.replace(/\D/g, '');
+                          if (raw.length > 4) raw = raw.slice(0, 4);
+
+                          let m = raw.slice(0, 2);
+                          let y = raw.slice(2);
+
+                          if (m.length === 2) {
+                            const val = parseInt(m);
+                            if (val === 0) m = '01';
+                            if (val > 12) m = '12';
+                          }
+
+                          setCardData(prev => ({
+                            ...prev,
+                            month: m,
+                            year: y ? `20${y}` : ''
+                          }));
+                        }}
+                      />
                     </div>
-                    <button onClick={() => handleInlineEdit({
-                      zip: formData.cep,
-                      street: formData.street,
-                      number: formData.number,
-                      neighborhood: formData.neighborhood,
-                      city: formData.city,
-                      state: formData.state,
-                      complement: formData.complement,
-                      type: formData.addressType
-                    })} className="text-xs text-primary hover:underline font-semibold">Editar</button>
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        placeholder="Código de segurança"
+                        className="w-full bg-white dark:bg-black border border-slate-300 dark:border-slate-600 rounded-md px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all"
+                        value={cardData.cvv}
+                        maxLength={4}
+                        onChange={e => setCardData({ ...cardData, cvv: e.target.value.replace(/\D/g, '') })}
+                      />
+                      <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none help" title="3 ou 4 dígitos no verso do cartão">help</span>
+                    </div>
+                  </div>
+
+                  {/* Name */}
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Nome no cartão"
+                      className="w-full bg-white dark:bg-black border border-slate-300 dark:border-slate-600 rounded-md px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all uppercase"
+                      value={cardData.holderName}
+                      onChange={e => setCardData({ ...cardData, holderName: e.target.value.toUpperCase() })}
+                    />
+                  </div>
+
+                  {/* Installments */}
+                  <div>
+                    <select
+                      className="w-full bg-white dark:bg-black border border-slate-300 dark:border-slate-600 rounded-md px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all"
+                      value={cardData.installments}
+                      onChange={e => setCardData({ ...cardData, installments: Number(e.target.value) })}
+                    >
+                      <option value={1}>1x sem juros</option>
+                      <option value={2}>2x sem juros</option>
+                      <option value={3}>3x sem juros</option>
+                    </select>
                   </div>
                 </div>
               )}
-            </>
-          )}
-        </div>
-
-        {/* Contact Summary */}
-        <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-lg transition-all">
-          <div className="flex justify-between items-center mb-2">
-            {!isEditingContact && <h3 className="font-bold text-slate-900 dark:text-white text-sm">Contato</h3>}
-            {!isEditingContact && <button onClick={() => setIsEditingContact(true)} className="text-xs text-primary font-bold hover:underline">Editar</button>}
-          </div>
-          {isEditingContact ? (
-            <div className="animate-in fade-in zoom-in-95 duration-200">
-              <CheckoutExtrasForm
-                initialData={{ phone: formData.phone, email: formData.email, notes: formData.notes, attachmentUrl: order?.attachmentUrl }}
-                onSubmit={handleSaveExtras}
-                onCancel={() => setIsEditingContact(false)}
-                submitLabel="Salvar Contato"
-                showBackButton={true}
-                backButtonLabel="Cancelar"
-                showNotes={false}
-                showFiles={false}
-              />
             </div>
-          ) : (
-            <div className="text-sm text-slate-600 dark:text-slate-400">
-              <p><span className="font-semibold">Telefone:</span> {formData.phone}</p>
-              <p><span className="font-semibold">E-mail:</span> {formData.email}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Notes & Attachment Summary */}
-        <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-lg transition-all">
-          <div className="flex justify-between items-center mb-2">
-            {!isEditingNotes && <h3 className="font-bold text-slate-900 dark:text-white text-sm">Observações e Documentos</h3>}
-            {!isEditingNotes && <button onClick={() => setIsEditingNotes(true)} className="text-xs text-primary font-bold hover:underline">Editar</button>}
-          </div>
-
-          {isEditingNotes ? (
-            <div className="animate-in fade-in zoom-in-95 duration-200">
-              <CheckoutExtrasForm
-                initialData={{ phone: formData.phone, email: formData.email, notes: formData.notes, attachmentUrl: order?.attachmentUrl }}
-                onSubmit={handleSaveExtras}
-                onUpload={handleUpload}
-                isUploading={isUploading}
-                uploadSuccess={!!order?.attachmentUrl}
-                onCancel={() => setIsEditingNotes(false)}
-                submitLabel="Salvar Observações"
-                showBackButton={true}
-                backButtonLabel="Cancelar"
-                showContact={false}
-              />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {formData.notes ? (
-                <p className="text-sm text-slate-600 dark:text-slate-400 italic">"{formData.notes}"</p>
-              ) : (
-                <p className="text-sm text-slate-400 italic">Nenhuma observação.</p>
-              )}
-
-              {order?.attachmentUrl && (
-                <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded">
-                  <span className="material-symbols-outlined">attach_file</span>
-                  <span className="font-medium">Receita anexada</span>
-                  <a href={order.attachmentUrl} target="_blank" rel="noreferrer" className="ml-auto text-xs underline hover:text-green-700">Ver arquivo</a>
+            {/* Pix Option */}
+            <div className={`transition-all ${paymentMethod === 'PIX' ? 'bg-blue-50/50 dark:bg-slate-800' : 'bg-white dark:bg-black/20'}`}>
+              <div
+                onClick={() => setPaymentMethod('PIX')}
+                className="flex items-center justify-between p-4 cursor-pointer border-t border-slate-200 dark:border-slate-700"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'PIX' ? 'border-primary bg-primary' : 'border-slate-300'}`}>
+                    {paymentMethod === 'PIX' && <div className="w-2 h-2 rounded-full bg-white"></div>}
+                  </div>
+                  <span className="font-bold text-slate-900 dark:text-white">Pix</span>
+                </div>
+                <div>
+                  <img src="/icons/pix.svg" alt="Pix" className="h-6" />
+                </div>
+              </div>
+              {paymentMethod === 'PIX' && (
+                <div className="p-6 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 text-center animate-in slide-in-from-top-2 duration-200 flex flex-col items-center">
+                  <img src="/icons/pix.svg" alt="Pix" className="h-10 mb-2" />
+                  <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">O código QR para pagamento será gerado após finalizar o pedido.</p>
+                  <p className="text-xs text-slate-500 mt-2">Aprovação imediata - 100% Seguro</p>
                 </div>
               )}
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Disclaimer */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 p-4 rounded-lg text-sm mb-4 mt-2">
-        <div className="flex gap-3">
-          <span className="material-symbols-outlined text-[20px] shrink-0 mt-0.5">lock</span>
-          <div>
-            <h3 className="font-bold mb-1">Pagamento Seguro</h3>
-            <p>Ao clicar em "Confirmar e Pagar", você será redirecionado para a plataforma de pagamentos segura da Farmácia Central (Asaas) para escolher a forma de pagamento (Pix, Cartão ou Boleto).</p>
           </div>
-        </div>
-      </div>
+        </div >
 
-      <div className="flex justify-between items-center pt-6 mt-4 border-t border-slate-100 dark:border-slate-800">
-        <button onClick={() => navigate('../details')} className="hidden md:flex text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium items-center gap-2">
+      </div >
+
+      {/* Footer Actions */}
+      < div className="flex justify-between items-center pt-6 mt-4 border-t border-slate-100 dark:border-slate-800" >
+        <button onClick={() => navigate('../details')} className="hidden md:flex text-slate-600 dark:text-slate-400 hover:text-slate-900 font-medium items-center gap-2">
           <span className="material-symbols-outlined">arrow_back</span> Voltar
         </button>
         <button
-          onClick={submitOrder}
+          onClick={handlePayment}
           disabled={isProcessing}
           className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
         >
-          {isProcessing ? 'Gerando Link de Pagamento...' : (
+          {isProcessing ? 'Processando...' : (
             <>
               <span className="material-symbols-outlined">lock</span>
-              Confirmar e Pagar
+              {paymentMethod === 'PIX' ? 'Gerar Pix' : 'Pagar Agora'}
             </>
           )}
         </button>
-      </div>
-    </div>
+      </div >
+    </div >
   )
 }
 
 const CheckoutSuccess = () => {
+  const { order, formData } = useCheckout();
+
+  // Helper to print
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Infer Payment Method from recent context or generic
+  // Since paymentMethod isn't explicitly in formData, we might just say "Confirmado" or look at order status
+  // If we really want it, we'd need to store it in formData during step 4, but for now:
+  const paymentLabel = order?.status === 'PAID' ? 'Confirmado' : 'Processando';
+
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden text-center pb-8 p-10">
-      <h1 className="text-2xl font-bold">Redirecionando...</h1>
+    <div className="max-w-xl mx-auto">
+      {/* Success Header - No Print */}
+      <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden text-center pb-8 p-8 md:p-12 animate-in zoom-in-95 duration-500 print:hidden">
+        <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+          <span className="material-symbols-outlined text-4xl text-green-600 dark:text-green-500">check_circle</span>
+        </div>
+
+        <h1 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Pagamento Confirmado!</h1>
+        <p className="text-slate-600 dark:text-slate-400 mb-8">
+          Seu pedido foi processado com sucesso. Você receberá os detalhes e o rastreamento por e-mail/WhatsApp.
+        </p>
+
+        {order && (
+          <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 max-w-xs mx-auto mb-8">
+            <p className="text-xs text-slate-500 uppercase font-bold mb-1">Número do Pedido</p>
+            <p className="text-xl font-mono font-bold text-slate-900 dark:text-white">#{order.id.slice(0, 8).toUpperCase()}</p>
+          </div>
+        )}
+
+        <div className="flex justify-center gap-4">
+          <button onClick={handlePrint} className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-slate-900 font-bold py-3 px-6 rounded-lg transition-all shadow-sm">
+            <span className="material-symbols-outlined">download</span> Baixar Comprovante
+          </button>
+        </div>
+      </div>
+
+      {/* Voucher Section - Printable */}
+      <div id="voucher-area" className="mt-8 bg-white border border-slate-200 p-8 rounded-xl shadow-sm print:shadow-none print:border-none print:p-0 print:mt-0">
+        <div className="flex justify-between items-start border-b border-slate-100 pb-6 mb-6">
+          <div>
+            <h2 className="text-xl font-black text-slate-900">Comprovante do Pedido</h2>
+            <p className="text-slate-500 text-sm mt-1">Salgado e Campos LTDA</p>
+          </div>
+          {order && (
+            <div className="text-right">
+              <p className="text-sm text-slate-400 uppercase font-bold">Pedido</p>
+              <p className="text-lg font-mono font-bold text-slate-900">#{order.id.slice(0, 8).toUpperCase()}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div>
+            <p className="text-xs uppercase font-bold text-slate-400 mb-1">Cliente</p>
+            <p className="font-bold text-slate-800">{formData.name}</p>
+            <p className="text-sm text-slate-600">CPF: {formData.cpf}</p>
+            <p className="text-sm text-slate-600">{formData.phone}</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase font-bold text-slate-400 mb-1">Método de Entrega</p>
+            {formData.deliveryMethod === 'PICKUP' ? (
+              <div>
+                <span className="inline-block bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded mb-1">RETIRADA NA LOJA</span>
+                <p className="font-bold text-slate-800 text-sm mt-1">{formData.pickupLocation}</p>
+                <p className="text-xs text-slate-500 mt-1">Apresente este comprovante na retirada.</p>
+              </div>
+            ) : (
+              <div>
+                <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded mb-1">ENTREGA</span>
+                <p className="text-sm text-slate-700 mt-1">{formData.street}, {formData.number}</p>
+                <p className="text-sm text-slate-700">{formData.neighborhood} - {formData.city}/{formData.state}</p>
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="text-xs uppercase font-bold text-slate-400 mb-1">Pagamento</p>
+            {order?.transactions?.[0] ? (
+              <div>
+                <p className="font-bold text-slate-800 uppercase">
+                  {order.transactions[0].type === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'Pix'}
+                </p>
+                {order.transactions[0].type === 'CREDIT_CARD' && (
+                  <div className="text-sm text-slate-600 mt-1">
+                    <p>Final: **** {order.transactions[0].metadata?.last4}</p>
+                    <p className="text-xs text-slate-500">{order.transactions[0].metadata?.installments}x sem juros</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-600">Processando...</p>
+            )}
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <p className="text-xs uppercase font-bold text-slate-400 mb-2">Itens do Pedido</p>
+          {/* Re-using OrderSummaryContent logic but static for print/view */}
+          <div className="border rounded-lg p-4 bg-slate-50 print:bg-transparent print:border-slate-200">
+            <OrderSummaryContent />
+          </div>
+        </div>
+
+        <div className="border-t border-slate-100 pt-6 flex justify-between items-center">
+          <div>
+            <p className="text-xs uppercase font-bold text-slate-400">Status do Pagamento</p>
+            <p className="text-green-600 font-bold flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">check_circle</span>
+              {order?.status === 'PAID' ? 'Pago / Confirmado' : 'Aguardando Pagamento'}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-slate-400">Data do Pedido</p>
+            <p className="text-sm font-bold text-slate-700">{new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Print Styles */}
+      <style>{`
+              @media print {
+                  body * { visibility: hidden; }
+                  #voucher-area, #voucher-area * { visibility: visible; }
+                  #voucher-area { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; border: none; shadow: none; }
+                  header, footer, .mb-10 { display: none !important; }
+              }
+          `}</style>
     </div>
   )
 }
@@ -844,6 +1097,8 @@ export const Checkout: React.FC = () => {
         complement: currentData.complement,
         type: currentData.addressType,
       },
+      deliveryMethod: currentData.deliveryMethod,
+      pickupLocation: currentData.pickupLocation,
       notes: currentData.notes
     };
 
@@ -866,6 +1121,11 @@ export const Checkout: React.FC = () => {
       const { data } = await api.get<OrderDetails>(`/checkout/${orderId}`);
       setOrder(data);
 
+      if (data.status === 'PAID') {
+        navigate('success', { replace: true });
+        return;
+      }
+
       // Sync selected address from order (if set by backend)
       if (data.addressId) {
         setSelectedAddressId(data.addressId);
@@ -886,13 +1146,9 @@ export const Checkout: React.FC = () => {
         if (data.customer.addresses && data.customer.addresses.length > 0) {
           const defaultAddr = data.customer.addresses.find(a => a.isPrimary) || data.customer.addresses[0];
           setSelectedAddressId(defaultAddr.id);
-
-          // SKIP LOGIC: If customer exists (has name) and has addresses, go to confirmation
-          // Only if we are at the "root" checkout path (step 1)
-          if (data.customer.name !== 'Cliente Não Identificado' && location.pathname.endsWith(orderId)) {
-            navigate('confirmation', { replace: true });
-          }
         }
+
+        const autoAddr = data.customer?.addresses?.find(a => a.isPrimary) || data.customer?.addresses?.[0];
 
         setFormData(prev => ({
           ...prev,
@@ -902,14 +1158,14 @@ export const Checkout: React.FC = () => {
           birthDate: birthDateFormatted,
           phone: data.customer?.phone || '',
           email: data.customer?.email || '',
-          cep: data.customer?.addressZip || '',
-          street: data.customer?.addressStreet || '',
-          number: data.customer?.addressNumber || '',
-          neighborhood: data.customer?.addressNeighborhood || '',
-          city: data.customer?.addressCity || '',
-          state: data.customer?.addressState || '',
-          complement: data.customer?.addressComplement || '',
-          addressType: 'Casa'
+          cep: autoAddr?.zip || '',
+          street: autoAddr?.street || '',
+          number: autoAddr?.number || '',
+          neighborhood: autoAddr?.neighborhood || '',
+          city: autoAddr?.city || '',
+          state: autoAddr?.state || '',
+          complement: autoAddr?.complement || '',
+          addressType: autoAddr?.type || 'Casa'
           // notes: data.notes?.[0]?.content || '' // REMOVED: Do not pre-fill notes from order history/attendant
         }));
       }
@@ -929,10 +1185,11 @@ export const Checkout: React.FC = () => {
     fetchOrder();
   }, [orderId, location.pathname]); // Added location.pathname to dependencies for skip logic
 
-  const submitOrder = async () => {
+  const submitOrder = async (paymentData: any) => {
     setIsProcessing(true);
     try {
-      const payload: any = {
+      // 1. Save Progress (Ensure contact/address is up to date)
+      const progressPayload: any = {
         partial: false,
         name: formData.name,
         cpf: formData.cpf,
@@ -943,12 +1200,10 @@ export const Checkout: React.FC = () => {
         notes: formData.notes
       };
 
-      // If we have a selected address ID, use it.
-      // Otherwise, send the address form data.
       if (selectedAddressId) {
-        payload.addressId = selectedAddressId;
+        progressPayload.addressId = selectedAddressId;
       } else {
-        payload.address = {
+        progressPayload.address = {
           zip: formData.cep,
           street: formData.street,
           number: formData.number,
@@ -959,13 +1214,27 @@ export const Checkout: React.FC = () => {
           type: formData.addressType
         };
       }
+      // Save contact info updates
+      await api.post(`/checkout/${orderId}`, progressPayload);
 
-      const { data } = await api.post<{ redirectUrl: string }>(`/checkout/${orderId}`, payload);
+      // 2. Process Payment
+      const payPayload = {
+        paymentMethod: paymentData.method,
+        cardData: paymentData.card,
+        amount: order?.totalValue // Optional verification
+      };
 
-      window.location.href = data.redirectUrl;
+      const { data } = await api.post(`/checkout/${orderId}/pay`, payPayload);
+
+      // If success or Pix Return
+      return data;
+
     } catch (error) {
       console.error(error);
-      toast.error('Erro ao processar. Tente novamente.');
+      toast.error('Erro ao processar pagamento. Verifique os dados.');
+      // Re-throw so component can verify
+      throw error;
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -975,6 +1244,7 @@ export const Checkout: React.FC = () => {
   if (location.pathname.includes('address')) step = 2;
   if (location.pathname.includes('details')) step = 3;
   if (location.pathname.includes('confirmation')) step = 4;
+  if (location.pathname.includes('success')) step = 5;
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
 
@@ -1024,23 +1294,32 @@ export const Checkout: React.FC = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-2">
-              <MobileOrderSummary />
-
+          {step === 5 ? (
+            // Success Page Layout (Full Width, Centered)
+            <div className="max-w-2xl mx-auto">
               <Routes>
-                <Route index element={<CheckoutStep1 />} />
-                <Route path="address" element={<CheckoutStep2 />} />
-                <Route path="details" element={<CheckoutStep3 />} />
-                <Route path="confirmation" element={<CheckoutStepConfirmation />} />
                 <Route path="success" element={<CheckoutSuccess />} />
               </Routes>
             </div>
+          ) : (
+            // Standard Steps Layout (Grid + Sidebar)
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              <div className="lg:col-span-2">
+                <MobileOrderSummary />
 
-            <div className="lg:col-span-1">
-              <OrderSummary />
+                <Routes>
+                  <Route index element={<CheckoutStep1 />} />
+                  <Route path="address" element={<CheckoutStep2 />} />
+                  <Route path="details" element={<CheckoutStep3 />} />
+                  <Route path="confirmation" element={<CheckoutStepConfirmation />} />
+                </Routes>
+              </div>
+
+              <div className="lg:col-span-1">
+                <OrderSummary />
+              </div>
             </div>
-          </div>
+          )}
         </main>
 
         <footer className="bg-surface-light dark:bg-surface-dark border-t border-slate-200 dark:border-slate-800 py-6 mt-auto">

@@ -1,11 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import { config } from '../config/env';
 
-// Ensure environment variables are set or provide fallbacks/warnings
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
-
-if (!supabaseUrl || !supabaseKey) {
+// Supabase client - opcional, pode não estar configurado em desenvolvimento
+if (!config.supabase.url || !config.supabase.key) {
     console.warn('⚠️ Supabase environment variables missing (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY/SUPABASE_KEY).');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(config.supabase.url, config.supabase.key);

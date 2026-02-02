@@ -269,9 +269,28 @@ export const NewLinkForm: React.FC<NewLinkFormProps> = ({ onCancel, onSuccess, i
 
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedLink);
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 2000);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(generatedLink).then(() => {
+        setLinkCopied(true);
+        toast.success('Link copiado!');
+        setTimeout(() => setLinkCopied(false), 2000);
+      }).catch(() => toast.error('Erro ao copiar'));
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = generatedLink;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setLinkCopied(true);
+        toast.success('Link copiado!');
+        setTimeout(() => setLinkCopied(false), 2000);
+      } catch (err) {
+        toast.error('Erro ao copiar link');
+      }
+      document.body.removeChild(textArea);
+    }
   };
 
   const resetForm = () => {

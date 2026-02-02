@@ -1,47 +1,84 @@
 import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
+import { AppError } from './errors/AppError';
+import { config } from '../config/env';
 
-export const globalErrorHandler = (error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
+/**
+ * Mapeia erros do Prisma para códigos HTTP apropriados
+ */
+function mapPrismaError(error: any): { statusCode: number; message: string } {
+    switch (error.code) {
+        case 'P2002':
+            return { statusCode: 409, message: 'Unique constraint violation' };
+        case 'P2025':
+            return { statusCode: 404, message: 'Record not found' };
+        case 'P2003':
+            return { statusCode: 400, message: 'Foreign key constraint failed' };
+        case 'P2014':
+            return { statusCode: 400, message: 'Required relation is missing' };
+        default:
+            return { statusCode: 500, message: 'Database error' };
+    }
+}
+
+export const globalErrorHandler = (error: FastifyError | Error, request: FastifyRequest, reply: FastifyReply) => {
     // Log error
     request.log.error(error);
+
+    // AppError (erros customizados da aplicação)
+    if (error instanceof AppError) {
+        return reply.status(error.statusCode).send({
+            statusCode: error.statusCode,
+            error: error.name,
+            message: error.message
+        });
+    }
 
     // Zod Validation Errors
     if (error instanceof ZodError) {
         return reply.status(400).send({
             statusCode: 400,
-            error: 'Bad Request',
-            message: 'Validation Error',
+            error: 'Validation Error',
+            message: 'Invalid request data',
             details: error.flatten()
         });
     }
 
-    // Prisma Errors (Basic mapping, can be expanded)
-    if (error.code === 'P2002') {
-        return reply.status(409).send({
-            statusCode: 409,
-            error: 'Conflict',
-            message: 'Unique constraint violation'
+    // Prisma Errors
+    if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' && error.code.startsWith('P')) {
+        const prismaError = mapPrismaError(error);
+        return reply.status(prismaError.statusCode).send({
+            statusCode: prismaError.statusCode,
+            error: 'Database Error',
+            message: prismaError.message
         });
     }
 
-    if (error.code === 'P2025') {
-        return reply.status(404).send({
-            statusCode: 404,
-            error: 'Not Found',
-            message: 'Record not found'
+    // Fastify Errors
+    if (error && typeof error === 'object' && 'statusCode' in error) {
+        const fastifyError = error as FastifyError;
+        return reply.status(fastifyError.statusCode || 500).send({
+            statusCode: fastifyError.statusCode || 500,
+            error: fastifyError.name || 'Error',
+            message: fastifyError.message || 'Internal Server Error'
         });
     }
 
-    // Default Error
-    const statusCode = error.statusCode || 500;
+    // Default Error (erros não tratados)
+    const statusCode = 500;
     const message = error.message || 'Internal Server Error';
 
-    // Hide stack in production (optional, but good practice)
-    // if (process.env.NODE_ENV === 'production') ...
-
-    return reply.status(statusCode).send({
+    // Em produção, não expor detalhes do erro
+    const response: any = {
         statusCode,
-        error: error.name || 'Internal Server Error',
-        message
-    });
+        error: 'Internal Server Error',
+        message: config.server.isProduction ? 'An unexpected error occurred' : message
+    };
+
+    // Em desenvolvimento, incluir stack trace
+    if (config.server.isDevelopment && error.stack) {
+        response.stack = error.stack;
+    }
+
+    return reply.status(statusCode).send(response);
 };

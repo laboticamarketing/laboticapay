@@ -1,0 +1,2709 @@
+{
+	"info": {
+		"_postman_id": "cbd3316f-cb87-4367-a48c-233eec21b260",
+		"name": "Sandbox Gateway de Pagamento (Maxipago!)",
+		"description": "Coleção com os serviços disponíveis de Gateway de Pagamento.\n\n[Clique aqui](https://www.maxipago.com/developers/) para acessar a documentação completa.\n\nEsta coleção já contém variáveis, para visualiza-las clique no nome da coleção **Sandbox Gateway de Pagamento (Maxipago!)** e selecione a aba `Variables`.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "5113954"
+	},
+	"item": [
+		{
+			"name": "Cadastro de Cliente",
+			"item": [
+				{
+					"name": "Criar um Cadastro do Cliente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var customerId = _.getFieldApiResponse('result', 'customerId');\r",
+									"if (customerId != null){\r",
+									"    pm.collectionVariables.set(\"customer_id\", customerId);\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-consumer</command>\n    <request>\n        <customerIdExt>46674194662</customerIdExt>\n        <firstName>REDE Teste</firstName>\n        <lastName>REDE</lastName>\n        <zip>06460-040</zip>\n        <email>teste@teste.comm</email>\n        <dob>12/02/1991</dob>\n        <ssn></ssn>\n        <sex>m</sex>\n    </request>\n</api-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postAPI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar um Cadastro de Cliente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>update-consumer</command>\n    <request>\n        <customerId>{{customer_id}}</customerId>\n        <customerIdExt>46674194662</customerIdExt>\n        <firstName>REDE Teste</firstName>\n        <lastName>new REDE</lastName>\n        <address1>Rua Pedro Luiz</address1>\n        <address2>Casa</address2>\n        <city>Guarulhos</city>\n        <state>SP</state>\n        <zip>06460-040</zip>\n        <country>BR</country>\n        <phone>(11) 96478-0733</phone>\n        <email>teste@teste.comm</email>\n        <dob>12/02/1991</dob>\n        <sex>M</sex>\n    </request>\n</api-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postAPI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remover um Cadastro de Cliente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>delete-consumer</command>\n    <request>\n        <customerId>{{customer_id}}</customerId>\n    </request>\n</api-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postAPI"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Salvar Cartão na Base",
+			"item": [
+				{
+					"name": "Criar um Cadastro do Cliente",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var customerId = _.getFieldApiResponse('result', 'customerId');\r",
+									"if (customerId != null){\r",
+									"    pm.collectionVariables.set(\"customer_id\", customerId);\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-consumer</command>\n    <request>\n        <customerIdExt>46674194662</customerIdExt>\n        <firstName>REDE Teste</firstName>\n        <lastName>card</lastName>\n        <zip>06460-040</zip>\n        <email>teste@teste.comm</email>\n        <dob>12/02/1991</dob>\n        <sex>m</sex>\n    </request>\n</api-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postAPI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Salvar um Cartão na Base",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var token = _.getFieldApiResponse('result', 'token');\r",
+									"if (token != null){\r",
+									"    pm.collectionVariables.set(\"token\", token);\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "text/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-card-onfile</command>\n    <request>\n        <customerId>{{customer_id}}</customerId>\n        <creditCardNumber>5555555555554444</creditCardNumber>\n        <expirationMonth>12</expirationMonth>\n        <expirationYear>2026</expirationYear>\n        <billingName>Maxipago Brasil</billingName>\n        <billingAddress1>Rua Marcos Penteado Ulhoa Rodrigues</billingAddress1>\n        <billingAddress2>11 Andar</billingAddress2>\n        <billingCity>Barueri</billingCity>\n        <billingState>SP</billingState>\n        <billingZip>06460-040</billingZip>\n        <billingCountry>BR</billingCountry>\n        <billingPhone>1121218536</billingPhone>\n        <billingEmail>teste@teste.com</billingEmail>\n    </request>\n</api-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postAPI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remover um Cartão da Base",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "text/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>delete-card-onfile</command>\n    <request>\n        <customerId>{{customer_id}}</customerId>\n        <token>{{token}}</token>\n    </request>\n</api-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postAPI"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Token Sale",
+			"item": [
+				{
+					"name": "Venda com cartão tokenizado - Approved",
+					"item": [
+						{
+							"name": "Adicionar customer",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var customerId = _.getFieldApiResponse('result', 'customerId');\r",
+											"if (customerId != null){\r",
+											"    pm.collectionVariables.set(\"customer_id\", customerId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-consumer</command>\n    <request>\n        <customerIdExt>46674194662</customerIdExt>\n        <firstName>REDE Teste</firstName>\n        <lastName>REDE</lastName>\n        <zip>06460-040</zip>\n        <email>teste@teste.comm</email>\n        <dob>12/02/1991</dob>\n        <ssn></ssn>\n        <sex>m</sex>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Tokenizar cartão",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var token = _.getFieldApiResponse('result', 'token');\r",
+											"if (token != null){\r",
+											"    pm.collectionVariables.set(\"token\", token);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "text/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-card-onfile</command>\n    <request>\n        <customerId>{{customer_id}}</customerId>\n        <creditCardNumber>5555555555554444</creditCardNumber>\n        <expirationMonth>12</expirationMonth>\n        <expirationYear>2026</expirationYear>\n        <billingName>Maxipago Brasil</billingName>\n        <billingAddress1>Rua Marcos Penteado Ulhoa Rodrigues</billingAddress1>\n        <billingAddress2>11 Andar</billingAddress2>\n        <billingCity>Barueri</billingCity>\n        <billingState>SP</billingState>\n        <billingZip>06460-040</billingZip>\n        <billingCountry>BR</billingCountry>\n        <billingPhone>1121218536</billingPhone>\n        <billingEmail>teste@teste.com</billingEmail>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Venda com cartão tokenizado",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"_.saveSaleInformation(pm);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <sale>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <fraudCheck>N</fraudCheck>\n            <ipAddress>192.168.0.10</ipAddress>\n            <customerIdExt>466.741.946-62</customerIdExt>\n            <billing>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <companyName>maxiPago!</companyName>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </billing>\n            <shipping>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </shipping>\n            <transactionDetail>\n                <payType>\n                    <onFile>\n                        <customerId>{{customer_id}}</customerId>\n                        <token>{{token}}</token>\n                    </onFile>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>10.00</chargeTotal>\n                <shippingTotal>10.00</shippingTotal>\n                <currencyCode>BRL</currencyCode>\n                <softDescriptor>mx5</softDescriptor>\n                <creditInstallment>\n                    <numberOfInstallments>2</numberOfInstallments>\n                    <chargeInterest>N</chargeInterest>\n                </creditInstallment>\n            </payment>\n            <itemList itemCount=\"1\">\n                <item>\n                    <itemIndex>1</itemIndex>\n                    <itemProductCode>Product de Teste Um</itemProductCode>\n                    <itemDescription>Certificacao de Integracao 01</itemDescription>\n                    <itemQuantity>2</itemQuantity>\n                    <itemTotalAmount>10.00</itemTotalAmount>\n                    <itemUnitCost>5.00</itemUnitCost>\n                </item>\n            </itemList>\n        </sale>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Venda com cartão tokenizado - Declined",
+					"item": [
+						{
+							"name": "Adicionar customer",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var customerId = _.getFieldApiResponse('result', 'customerId');\r",
+											"if (customerId != null){\r",
+											"    pm.collectionVariables.set(\"customer_id\", customerId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-consumer</command>\n    <request>\n        <customerIdExt>46674194662</customerIdExt>\n        <firstName>REDE Teste</firstName>\n        <lastName>REDE</lastName>\n        <zip>06460-040</zip>\n        <email>teste@teste.comm</email>\n        <dob>12/02/1991</dob>\n        <ssn></ssn>\n        <sex>m</sex>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Tokenizar cartão",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var token = _.getFieldApiResponse('result', 'token');\r",
+											"if (token != null){\r",
+											"    pm.collectionVariables.set(\"token\", token);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "text/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-card-onfile</command>\n    <request>\n        <customerId>{{customer_id}}</customerId>\n        <creditCardNumber>5555555555554444</creditCardNumber>\n        <expirationMonth>12</expirationMonth>\n        <expirationYear>2026</expirationYear>\n        <billingName>Maxipago Brasil</billingName>\n        <billingAddress1>Rua Marcos Penteado Ulhoa Rodrigues</billingAddress1>\n        <billingAddress2>11 Andar</billingAddress2>\n        <billingCity>Barueri</billingCity>\n        <billingState>SP</billingState>\n        <billingZip>06460-040</billingZip>\n        <billingCountry>BR</billingCountry>\n        <billingPhone>1121218536</billingPhone>\n        <billingEmail>teste@teste.com</billingEmail>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Venda com cartão tokenizado",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"_.saveSaleInformation(pm);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <sale>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <fraudCheck>N</fraudCheck>\n            <ipAddress>192.168.0.10</ipAddress>\n            <customerIdExt>466.741.946-62</customerIdExt>\n            <billing>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <companyName>maxiPago!</companyName>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </billing>\n            <shipping>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </shipping>\n            <transactionDetail>\n                <payType>\n                    <onFile>\n                        <customerId>{{customer_id}}</customerId>\n                        <token>{{token}}</token>\n                    </onFile>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>1.01</chargeTotal>\n                <shippingTotal>1.01</shippingTotal>\n                <currencyCode>BRL</currencyCode>\n                <softDescriptor>mx5</softDescriptor>\n                <creditInstallment>\n                    <numberOfInstallments>2</numberOfInstallments>\n                    <chargeInterest>N</chargeInterest>\n                </creditInstallment>\n            </payment>\n            <itemList itemCount=\"1\">\n                <item>\n                    <itemIndex>1</itemIndex>\n                    <itemProductCode>Product de Teste Um</itemProductCode>\n                    <itemDescription>Certificacao de Integracao 01</itemDescription>\n                    <itemQuantity>1</itemQuantity>\n                    <itemTotalAmount>1.01</itemTotalAmount>\n                    <itemUnitCost>1.01</itemUnitCost>\n                </item>\n            </itemList>\n        </sale>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Zero Dollar",
+			"item": [
+				{
+					"name": "Simples",
+					"item": [
+						{
+							"name": "Zero Dollar - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"_.saveSaleInformation(pm);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <zeroDollar>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <transactionDetail>\n                <payType>\n                    <creditCard>\n                        <number>5111111111111100</number>\n                        <expMonth>02</expMonth>\n                        <expYear>{{exp_year}}</expYear>\n                        <cvvNumber>123</cvvNumber>\n                    </creditCard>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>00.00</chargeTotal>\n            </payment>\n        </zeroDollar>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Zero Dollar - ChargeGreaterThanZero",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <zeroDollar>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <transactionDetail>\n                <payType>\n                    <creditCard>\n                        <number>5111111111111100</number>\n                        <expMonth>02</expMonth>\n                        <expYear>{{exp_year}}</expYear>\n                        <cvvNumber>123</cvvNumber>\n                    </creditCard>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>00.01</chargeTotal>\n            </payment>\n        </zeroDollar>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var referenceNum = _.randomValue();",
+									"pm.collectionVariables.set(\"reference_num\", referenceNum);",
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Cartão tokenizado - Approved",
+					"item": [
+						{
+							"name": "Adicionar customer",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var customerId = _.getFieldApiResponse('result', 'customerId');\r",
+											"if (customerId != null){\r",
+											"    pm.collectionVariables.set(\"customer_id\", customerId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-consumer</command>\n    <request>\n        <customerIdExt>46674194662</customerIdExt>\n        <firstName>REDE Teste</firstName>\n        <lastName>REDE</lastName>\n        <zip>06460-040</zip>\n        <email>teste@teste.comm</email>\n        <dob>12/02/1991</dob>\n        <ssn></ssn>\n        <sex>m</sex>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Tokenizar cartão",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var token = _.getFieldApiResponse('result', 'token');\r",
+											"if (token != null){\r",
+											"    pm.collectionVariables.set(\"token\", token);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "text/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-card-onfile</command>\n    <request>\n        <customerId>{{customer_id}}</customerId>\n        <creditCardNumber>5555555555554444</creditCardNumber>\n        <expirationMonth>12</expirationMonth>\n        <expirationYear>2026</expirationYear>\n        <billingName>Maxipago Brasil</billingName>\n        <billingAddress1>Rua Marcos Penteado Ulhoa Rodrigues</billingAddress1>\n        <billingAddress2>11 Andar</billingAddress2>\n        <billingCity>Barueri</billingCity>\n        <billingState>SP</billingState>\n        <billingZip>06460-040</billingZip>\n        <billingCountry>BR</billingCountry>\n        <billingPhone>1121218536</billingPhone>\n        <billingEmail>teste@teste.com</billingEmail>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Zero Dollar",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"_.saveSaleInformation(pm);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <zeroDollar>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <transactionDetail>\n                <payType>\n                    <onFile>\n                        <customerId>{{customer_id}}</customerId>\n                        <token>{{token}}</token>\n                    </onFile>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>00.00</chargeTotal>\n            </payment>\n        </zeroDollar>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Salvar o cartão automaticamente com Zero Dollar - Approved",
+					"item": [
+						{
+							"name": "Adicionar customer",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var customerId = _.getFieldApiResponse('result', 'customerId');\r",
+											"if (customerId != null){\r",
+											"    pm.collectionVariables.set(\"customer_id\", customerId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-consumer</command>\n    <request>\n        <customerIdExt>46674194662</customerIdExt>\n        <firstName>REDE Teste</firstName>\n        <lastName>REDE</lastName>\n        <zip>06460-040</zip>\n        <email>teste@teste.comm</email>\n        <dob>12/02/1991</dob>\n        <ssn></ssn>\n        <sex>m</sex>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Zero Dollar - Approved",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"_.saveSaleInformation(pm);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <zeroDollar>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <transactionDetail>\n                <payType>\n                    <creditCard>\n                        <number>5111111111111100</number>\n                        <expMonth>12</expMonth>\n                        <expYear>{{exp_year}}</expYear>\n                        <cvvNumber>999</cvvNumber>\n                    </creditCard>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>00.00</chargeTotal>\n            </payment>\n            <saveOnFile>\n                <customerToken>{{customer_id}}</customerToken>\n                <onFileEndDate>{{future_date}}</onFileEndDate>\n            </saveOnFile>\n        </zeroDollar>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Consulta",
+			"item": [
+				{
+					"name": "Consultar por orderId",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<rapi-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>transactionDetailReport</command>\n    <request>\n        <filterOptions>\n            <orderId>{{order_id}}</orderId>\n        </filterOptions>\n    </request>\n</rapi-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/ReportsAPI/servlet/ReportsAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ReportsAPI",
+								"servlet",
+								"ReportsAPI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar por transactionId",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<rapi-request>\n\t<verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n\t</verification>\n\t<command>transactionDetailReport</command>\n\t<request>\n\t\t<filterOptions>\n\t\t\t<transactionId>{{transaction_id}}</transactionId>\n\t\t</filterOptions>\n\t</request>\n</rapi-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/ReportsAPI/servlet/ReportsAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ReportsAPI",
+								"servlet",
+								"ReportsAPI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar por referenceNum",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<rapi-request>\n\t<verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n\t</verification>\n\t<command>transactionDetailReport</command>\n\t<request>\n\t\t<filterOptions>\n\t\t\t<referenceNum>{{reference_num}}</referenceNum>\n\t\t</filterOptions>\n\t</request>\n</rapi-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/ReportsAPI/servlet/ReportsAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ReportsAPI",
+								"servlet",
+								"ReportsAPI"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cartão de Crédito",
+			"item": [
+				{
+					"name": "Autorização",
+					"item": [
+						{
+							"name": "Captura",
+							"item": [
+								{
+									"name": "Captura - Approved",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/xml"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <capture>\n            <orderID>{{order_id}}</orderID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <payment>\n                <chargeTotal>10.00</chargeTotal>\n            </payment>\n        </capture>\n    </order>\n</transaction-request>"
+										},
+										"url": {
+											"raw": "{{base_url}}/UniversalAPI/postXML",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"UniversalAPI",
+												"postXML"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Captura - Declined",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/xml"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <capture>\n            <orderID>{{order_id}}</orderID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <payment>\n                <chargeTotal>9.01</chargeTotal>\n            </payment>\n        </capture>\n    </order>\n</transaction-request>"
+										},
+										"url": {
+											"raw": "{{base_url}}/UniversalAPI/postXML",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"UniversalAPI",
+												"postXML"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Autorização - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"_.saveSaleInformation(pm);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <auth>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <fraudCheck>N</fraudCheck>\n            <ipAddress>192.168.0.10</ipAddress>\n            <customerIdExt>46674194662</customerIdExt>\n            <billing>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <companyName>maxiPago!</companyName>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </billing>\n            <shipping>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </shipping>\n            <transactionDetail>\n                <payType>\n                    <creditCard>\n                        <number>5111111111111100</number>\n                        <expMonth>12</expMonth>\n                        <expYear>{{exp_year}}</expYear>\n                        <cvvNumber>100</cvvNumber>\n                    </creditCard>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>10.00</chargeTotal>\n                <shippingTotal>10.00</shippingTotal>\n                <currencyCode>BRL</currencyCode>\n                <softDescriptor>mx5</softDescriptor>\n                <creditInstallment>\n                    <numberOfInstallments>2</numberOfInstallments>\n                    <chargeInterest>N</chargeInterest>\n                </creditInstallment>\n            </payment>\n            <itemList itemCount=\"1\">\n                <item>\n                    <itemIndex>1</itemIndex>\n                    <itemProductCode>Product de Teste Um</itemProductCode>\n                    <itemDescription>Certificacao de Integracao 01</itemDescription>\n                    <itemQuantity>2</itemQuantity>\n                    <itemTotalAmount>10.00</itemTotalAmount>\n                    <itemUnitCost>5.00</itemUnitCost>\n                </item>\n            </itemList>\n        </auth>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Autorização - Declined",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"_.saveSaleInformation(pm);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <auth>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <fraudCheck>N</fraudCheck>\n            <ipAddress>192.168.0.10</ipAddress>\n            <customerIdExt>46674194662</customerIdExt>\n            <billing>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <companyName>maxiPago!</companyName>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </billing>\n            <shipping>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </shipping>\n            <transactionDetail>\n                <payType>\n                    <creditCard>\n                        <number>5111111111111100</number>\n                        <expMonth>12</expMonth>\n                        <expYear>{{exp_year}}</expYear>\n                        <cvvNumber>100</cvvNumber>\n                    </creditCard>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>10.01</chargeTotal>\n                <shippingTotal>10.00</shippingTotal>\n                <currencyCode>BRL</currencyCode>\n                <softDescriptor>mx5</softDescriptor>\n                <creditInstallment>\n                    <numberOfInstallments>2</numberOfInstallments>\n                    <chargeInterest>N</chargeInterest>\n                </creditInstallment>\n            </payment>\n            <itemList itemCount=\"1\">\n                <item>\n                    <itemIndex>1</itemIndex>\n                    <itemProductCode>Product de Teste Um</itemProductCode>\n                    <itemDescription>Certificacao de Integracao 01</itemDescription>\n                    <itemQuantity>1</itemQuantity>\n                    <itemTotalAmount>10.01</itemTotalAmount>\n                    <itemUnitCost>10.01</itemUnitCost>\n                </item>\n            </itemList>\n        </auth>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Venda direta",
+					"item": [
+						{
+							"name": "Venda Direta - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"_.saveSaleInformation(pm);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <sale>\n           <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <fraudCheck>N</fraudCheck>\n            <ipAddress>192.168.0.10</ipAddress>\n            <customerIdExt>46674194662</customerIdExt>\n            <billing>\n                <name>Carlos Eduardo Augusto Araújo</name>\n                <address>Rua Comendador J. G. Araújo, 296</address>\n                <address2>11º Andar</address2>\n                <district>Santo Antônio</district>\n                <city>Manaus</city>\n                <state>AM</state>\n                <postalcode>69029-130</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <companyName>maxiPago!</companyName>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>27175976</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>985052491</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>920.323.047-59</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>34.285.918-3</documentValue>\n                    </document>\n                </documents>\n            </billing>\n            <shipping>\n                <name>Carlos Eduardo Augusto Araújo</name>\n                <address>Rua Comendador J. G. Araújo, 296</address>\n                <address2>11º Andar</address2>\n                <district>Santo Antônio</district>\n                <city>Manaus</city>\n                <state>AM</state>\n                <postalcode>69029-130</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>27175976</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>985052491</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>920.323.047-59</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>34.285.918-3</documentValue>\n                    </document>\n                </documents>\n            </shipping>\n            <transactionDetail>\n                <payType>\n                    <creditCard>\n                        <number>5111111111111100</number>\n                        <expMonth>12</expMonth>\n                        <expYear>{{exp_year}}</expYear>\n                        <cvvNumber>100</cvvNumber>\n                    </creditCard>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>10.00</chargeTotal>\n                <shippingTotal>10.00</shippingTotal>\n                <currencyCode>BRL</currencyCode>\n                <softDescriptor>mx5</softDescriptor>\n                <creditInstallment>\n                    <numberOfInstallments>2</numberOfInstallments>\n                    <chargeInterest>N</chargeInterest>\n                </creditInstallment>\n            </payment>\n            <itemList itemCount=\"1\">\n                <item>\n                    <itemIndex>1</itemIndex>\n                    <itemProductCode>Product de Teste Um</itemProductCode>\n                    <itemDescription>Certificacao de Integracao 01</itemDescription>\n                    <itemQuantity>2</itemQuantity>\n                    <itemTotalAmount>10.00</itemTotalAmount>\n                    <itemUnitCost>5.00</itemUnitCost>\n                </item>\n            </itemList>\n        </sale>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Venda Direta - Declined",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <sale>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <fraudCheck>N</fraudCheck>\n            <ipAddress>192.168.0.10</ipAddress>\n            <customerIdExt>46674194662</customerIdExt>\n            <billing>\n                <name>Carlos Eduardo Augusto Araújo</name>\n                <address>Rua Comendador J. G. Araújo, 296</address>\n                <address2>11º Andar</address2>\n                <district>Santo Antônio</district>\n                <city>Manaus</city>\n                <state>AM</state>\n                <postalcode>69029-130</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <companyName>maxiPago!</companyName>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>27175976</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>985052491</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>920.323.047-59</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>34.285.918-3</documentValue>\n                    </document>\n                </documents>\n            </billing>\n            <shipping>\n                <name>Carlos Eduardo Augusto Araújo</name>\n                <address>Rua Comendador J. G. Araújo, 296</address>\n                <address2>11º Andar</address2>\n                <district>Santo Antônio</district>\n                <city>Manaus</city>\n                <state>AM</state>\n                <postalcode>69029-130</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>27175976</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>985052491</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>920.323.047-59</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>34.285.918-3</documentValue>\n                    </document>\n                </documents>\n            </shipping>\n            <transactionDetail>\n                <payType>\n                    <creditCard>\n                        <number>5111111111111100</number>\n                        <expMonth>12</expMonth>\n                        <expYear>{{exp_year}}</expYear>\n                        <cvvNumber>100</cvvNumber>\n                    </creditCard>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>10.01</chargeTotal>\n                <shippingTotal>10.00</shippingTotal>\n                <currencyCode>BRL</currencyCode>\n                <softDescriptor>mx5</softDescriptor>\n                <creditInstallment>\n                    <numberOfInstallments>2</numberOfInstallments>\n                    <chargeInterest>N</chargeInterest>\n                </creditInstallment>\n            </payment>\n            <itemList itemCount=\"1\">\n                <item>\n                    <itemIndex>1</itemIndex>\n                    <itemProductCode>Product de Teste Um</itemProductCode>\n                    <itemDescription>Certificacao de Integracao 01</itemDescription>\n                    <itemQuantity>1</itemQuantity>\n                    <itemTotalAmount>10.01</itemTotalAmount>\n                    <itemUnitCost>10.01</itemUnitCost>\n                </item>\n            </itemList>\n        </sale>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var referenceNum = _.randomValue();",
+									"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Estorno",
+					"item": [
+						{
+							"name": "Estorno - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <return>\n            <orderID>{{order_id}}</orderID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <payment>\n                <chargeTotal>03.00</chargeTotal>\n            </payment>\n        </return>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Estorno - AmountGreaterThanSale",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"_.saveSaleInformation(pm);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <return>\n            <orderID>{{order_id}}</orderID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <payment>\n                <chargeTotal>1500.00</chargeTotal>\n            </payment>\n        </return>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Cancelamento",
+					"item": [
+						{
+							"name": "Cancelamento",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <void>\n            <transactionID>{{transaction_id}}</transactionID>\n        </void>\n    </order>\n</transaction-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postXML",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postXML"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "PIX",
+			"item": [
+				{
+					"name": "Criação de Pagamento PIX - Approved",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"_.saveSaleInformation(pm);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var referenceNum = _.randomValue();\r",
+									"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <sale>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <fraudCheck>N</fraudCheck>\n            <customerIdExt>46674194662</customerIdExt>\n            <billing>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <companyName>maxiPago!</companyName>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </billing>\n            <shipping>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </shipping>\n            <transactionDetail>\n                <payType>\n                    <pix>\n                        <expirationTime>86400</expirationTime>\n                        <paymentInfo>Smart TV LG 65´ 8K IPS NanoCell, Conexão WiFi e Bluetooth</paymentInfo>\n                        <extraInfo>\n                            <info>\n                                <name>TV8k</name>\n                                <value>R$10000.00</value>\n                            </info>\n                            <info>\n                                <name>Garantia Estendida</name>\n                                <value>R$6.00</value>\n                            </info>\n                        </extraInfo>\n                    </pix>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>10006.00</chargeTotal>\n            </payment>\n        </sale>\n    </order>\n</transaction-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postXML",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postXML"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criação de Pagamento PIX - Declined",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var referenceNum = _.randomValue();\r",
+									"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <sale>\n            <processorID>200</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <fraudCheck>N</fraudCheck>\n            <customerIdExt>46674194662</customerIdExt>\n            <billing>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <companyName>maxiPago!</companyName>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </billing>\n            <shipping>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n                <phones>\n                    <phone>\n                        <phoneType>Commercial</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>92</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                        <phoneExtension>123</phoneExtension>\n                    </phone>\n                    <phone>\n                        <phoneType>Mobile</phoneType>\n                        <phoneCountryCode>55</phoneCountryCode>\n                        <phoneAreaCode>99</phoneAreaCode>\n                        <phoneNumber>99999-9999</phoneNumber>\n                    </phone>\n                </phones>\n                <documents>\n                    <document>\n                        <documentType>CPF</documentType>\n                        <documentValue>123.456.789-00</documentValue>\n                    </document>\n                    <document>\n                        <documentType>RG</documentType>\n                        <documentValue>12.345.678-9</documentValue>\n                    </document>\n                </documents>\n            </shipping>\n            <transactionDetail>\n                <payType>\n                    <pix>\n                        <expirationTime>86400</expirationTime>\n                        <paymentInfo>Smart TV LG 65´ 8K IPS NanoCell, Conexão WiFi e Bluetooth</paymentInfo>\n                        <extraInfo>\n                            <info>\n                                <name>TV8k</name>\n                                <value>R$10000.00</value>\n                            </info>\n                            <info>\n                                <name>Garantia Estendida</name>\n                                <value>R$5.01</value>\n                            </info>\n                        </extraInfo>\n                    </pix>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>10005.01</chargeTotal>\n            </payment>\n        </sale>\n    </order>\n</transaction-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postXML",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postXML"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consulta Pagamento PIX",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<rapi-request>\n\t<verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n\t</verification>\n\t<command>transactionDetailReport</command>\n\t<request>\n\t\t<filterOptions>\n\t\t\t<orderId>{{order_id}}</orderId>\n\t\t</filterOptions>\n\t</request>\n</rapi-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/ReportsAPI/servlet/ReportsAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ReportsAPI",
+								"servlet",
+								"ReportsAPI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refund Pagamento PIX (Depois Pagamento)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <pixReturn>\n            <orderID>{{order_id}}</orderID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <payment>\n                <chargeTotal>10.00</chargeTotal>\n            </payment>\n        </pixReturn>\n    </order>\n</transaction-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postXML",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postXML"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Void Pagamento PIX (Até o Pagamento)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<transaction-request>\n\t<version>3.1.1.15</version>\n\t<verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n\t</verification>\n\t<order>\n\t\t<void>\n\t\t\t<transactionID>{{transaction_id}}</transactionID>\n\t\t</void>\n\t</order>\n</transaction-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postXML",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postXML"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Link de pagamento rápido",
+			"item": [
+				{
+					"name": "Recorrencia",
+					"item": [
+						{
+							"name": "Criação de ordem de Pagamento - Recorrente - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var payOrderId = _.getFieldApiResponse('result', 'pay_order_id');\r",
+											"if (payOrderId != null){\r",
+											"    pm.collectionVariables.set(\"pay_order_id\", payOrderId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-payment-order</command>\n    <request>\n        <referenceNum>{{reference_num}}</referenceNum>\n        <consumerAuthentication>N</consumerAuthentication>\n        <fraudCheck>N</fraudCheck>\n        <billing>\n            <email>teste@maxipago.com</email>\n            <firstName>Teste</firstName>\n            <lastName>Maxipay</lastName>\n        </billing>\n        <transactionDetail>\n            <description>Pagamento Parcela Do caminhao</description>\n            <comments>Pagar ate dia 30</comments>\n            <emailSubject>Favor efetuar o pagamento</emailSubject>\n            <expirationDate>{{expiration_date}}</expirationDate>\n            <acceptPix>N</acceptPix>\n            <payType>\n                <creditCard>\n                    <processorID>1</processorID>\n                    <operation>sale</operation>\n                    <numberOfInstallments>12</numberOfInstallments>\n                    <currencyCode>BRL</currencyCode>\n                    <amount>952.28</amount>\n                </creditCard>\n            </payType>\n        </transactionDetail>\n        <recurring>\n            <startDate>{{start_date}}</startDate>\n            <period>monthly</period>\n            <numberOfInstallments>12</numberOfInstallments>\n            <failureThreshold>3</failureThreshold>\n            <amount>952.28</amount>\n        </recurring>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de ordem de Pagamento - Recorrente - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>get-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Cancelamento de ordem de Pagamento - Recorrente - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>cancel-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Recorrencia com Pix",
+					"item": [
+						{
+							"name": "Criação de ordem de Pagamento com Pix - Recorrente - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var payOrderId = _.getFieldApiResponse('result', 'pay_order_id');\r",
+											"if (payOrderId != null){\r",
+											"    pm.collectionVariables.set(\"pay_order_id\", payOrderId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-payment-order</command>\n    <request>\n        <referenceNum>{{reference_num}}</referenceNum>\n        <consumerAuthentication>N</consumerAuthentication>\n        <fraudCheck>N</fraudCheck>\n        <billing>\n            <email>teste@maxipago.com</email>\n            <firstName>Teste</firstName>\n            <lastName>Maxipay</lastName>\n        </billing>\n        <transactionDetail>\n            <description>Pagamento Parcela Do caminhao</description>\n            <comments>Pagar ate dia 30</comments>\n            <emailSubject>Favor efetuar o pagamento</emailSubject>\n            <expirationDate>{{expiration_date}}</expirationDate>\n            <acceptPix>Y</acceptPix>\n            <payType>\n                <creditCard>\n                    <processorID>1</processorID>\n                    <operation>sale</operation>\n                    <numberOfInstallments>12</numberOfInstallments>\n                    <currencyCode>BRL</currencyCode>\n                    <amount>942.28</amount>\n                </creditCard>\n            </payType>\n        </transactionDetail>\n        <recurring>\n            <startDate>{{start_date}}</startDate>\n            <period>monthly</period>\n            <numberOfInstallments>12</numberOfInstallments>\n            <failureThreshold>3</failureThreshold>\n            <amount>942.28</amount>\n        </recurring>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de ordem de Pagamento com Pix  - Recorrente - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>get-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Cancelamento de ordem de Pagamento com Pix  - Recorrente - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>cancel-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Crédito",
+					"item": [
+						{
+							"name": "Criação de ordem de Pagamento - Credit  - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var payOrderId = _.getFieldApiResponse('result', 'pay_order_id');\r",
+											"if (payOrderId != null){\r",
+											"    pm.collectionVariables.set(\"pay_order_id\", payOrderId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-payment-order</command>\n    <request>\n        <referenceNum>{{reference_num}}</referenceNum>\n        <userId>Flavis</userId>\n        <consumerAuthentication>N</consumerAuthentication>\n        <fraudCheck>N</fraudCheck>\n        <billing>\n            <email>teste@maxipago.com</email>\n            <firstName>Maxipago</firstName>\n            <lastName>Teste</lastName>\n        </billing>\n        <transactionDetail>\n            <description>Teste: Pagamento Parcela da moto 1 credit simulator 1</description>\n            <comments>Pagar ate dia 30</comments>\n            <emailSubject>Favor efetuar o pagamento</emailSubject>\n            <expirationDate>{{expiration_date}}</expirationDate>\n            <acceptPix>N</acceptPix>\n            <payType>\n                <creditCard>\n                    <processorID>1</processorID>\n                    <operation>auth</operation>\n                    <numberOfInstallments>1</numberOfInstallments>\n                    <currencyCode>BRL</currencyCode>\n                    <amount>128.76</amount>\n                </creditCard>\n            </payType>\n        </transactionDetail>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de ordem de Pagamento - Credit  - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>get-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Cancelamento de ordem de Pagamento - Credit  - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>cancel-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Crédito com PIX",
+					"item": [
+						{
+							"name": "Criação de ordem de Pagamento - Credit  - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var payOrderId = _.getFieldApiResponse('result', 'pay_order_id');\r",
+											"if (payOrderId != null){\r",
+											"    pm.collectionVariables.set(\"pay_order_id\", payOrderId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-payment-order</command>\n    <request>\n        <referenceNum>{{reference_num}}</referenceNum>\n        <userId>Flavis5</userId>\n        <consumerAuthentication>N</consumerAuthentication>\n        <fraudCheck>N</fraudCheck>\n        <billing>\n            <email>teste@maxipago.com</email>\n            <firstName>Maxipago</firstName>\n            <lastName>Brasil</lastName>\n        </billing>\n        <transactionDetail>\n            <description>Teste: Pagamento Parcela da moto 1 credit simulator 1</description>\n            <comments>Pagar ate dia 30</comments>\n            <emailSubject>Favor efetuar o pagamento</emailSubject>\n            <expirationDate>{{expiration_date}}</expirationDate>\n            <acceptPix>Y</acceptPix>\n            <payType>\n                <creditCard>\n                    <processorID>1</processorID>\n                    <operation>auth</operation>\n                    <numberOfInstallments>1</numberOfInstallments>\n                    <currencyCode>BRL</currencyCode>\n                    <amount>126.76</amount>\n                </creditCard>\n            </payType>\n        </transactionDetail>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de ordem de Pagamento - Credit  - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>get-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Cancelamento de ordem de Pagamento - Credit  - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>cancel-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Link de pagamento com autenticação",
+			"item": [
+				{
+					"name": "Crédito",
+					"item": [
+						{
+							"name": "Criação de ordem de Pagamento - Credit  - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var payOrderId = _.getFieldApiResponse('result', 'pay_order_id');\r",
+											"if (payOrderId != null){\r",
+											"    pm.collectionVariables.set(\"pay_order_id\", payOrderId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-payment-order</command>\n    <request>\n        <referenceNum>{{reference_num}}</referenceNum>\n        <userId>Flavis</userId>\n        <consumerAuthentication>Y</consumerAuthentication>\n        <fraudCheck>N</fraudCheck>\n        <billing>\n            <address>Rua teste, 0</address>\n            <address2>11 Andar</address2>\n            <city>São Paulo</city>\n            <state>SP</state>\n            <district>Santo André</district>\n            <postalcode>00000-000</postalcode>\n            <country>BR</country>\n            <email>teste@maxipago.com</email>\n            <customerIdExt>01234567890</customerIdExt>\n            <firstName>Maxipago</firstName>\n            <lastName>teste</lastName>\n            <dob>01/30/1984</dob>\n            <sex>M</sex>\n            <phone>(99) 99999-9999</phone>\n        </billing>\n        <shipping>\n            <name>Nome do comprador</name>\n            <address>Rua teste, 0</address>\n            <address2>11º Andar</address2>\n            <district>Santo André</district>\n            <city>São Paulo</city>\n            <state>AM</state>\n            <postalcode>00000-000</postalcode>\n            <country>BR</country>\n            <phone>(99) 99999-9999</phone>\n            <email>teste@maxipago.com</email>\n            <customerIdExt>01234567890</customerIdExt>\n            <dob>01/30/1984</dob>\n        </shipping>\n        <transactionDetail>\n            <description>Teste: Pagamento Parcela da moto 1 credit simulator 1</description>\n            <comments>Pagar ate dia 30</comments>\n            <emailSubject>Favor efetuar o pagamento</emailSubject>\n            <expirationDate>{{expiration_date}}</expirationDate>\n            <acceptPix>N</acceptPix>\n            <payType>\n                <creditCard>\n                    <processorID>1</processorID>\n                    <operation>auth</operation>\n                    <numberOfInstallments>1</numberOfInstallments>\n                    <currencyCode>BRL</currencyCode>\n                    <amount>120.76</amount>\n                </creditCard>\n            </payType>\n        </transactionDetail>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Edição de ordem de Pagamento - Credit  - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>update-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n        <referenceNum>{{reference_num}}</referenceNum>\n        <fraudCheck>N</fraudCheck>\n        <transactionDetail>\n            <description>Teste Editar - Pagamento Parcela Do Carro</description>\n            <comments>Pagar ate dia 30</comments>\n            <emailSubject>Favor efetuar o pagamento</emailSubject>\n            <expirationDate>{{expiration_date}}</expirationDate>\n            <payType>\n                <creditCard>\n                    <processorID>1</processorID>\n                    <operation>sale</operation>\n                    <numberOfInstallments>2</numberOfInstallments>\n                    <currencyCode>BRL</currencyCode>\n                    <amount>1000.00</amount>\n                </creditCard>\n            </payType>\n        </transactionDetail>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de ordem de Pagamento - Credit  - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>get-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Cancelamento de ordem de Pagamento - Credit  - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>cancel-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Recorrencia",
+					"item": [
+						{
+							"name": "Criação de ordem de Pagamento - Recorrente - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var payOrderId = _.getFieldApiResponse('result', 'pay_order_id');\r",
+											"if (payOrderId != null){\r",
+											"    pm.collectionVariables.set(\"pay_order_id\", payOrderId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-payment-order</command>\n    <request>\n        <referenceNum>{{reference_num}}</referenceNum>\n        <consumerAuthentication>N</consumerAuthentication>\n        <fraudCheck>Y</fraudCheck>\n        <billing>\n            <address>Rua teste, 0</address>\n            <address2>11 Andar</address2>\n            <city>São Paulo</city>\n            <state>SP</state>\n            <district>Santo André</district>\n            <postalcode>00000-000</postalcode>\n            <country>BR</country>\n            <email>teste@maxipago.com</email>\n            <customerIdExt>01234567890</customerIdExt>\n            <firstName>Maxipago</firstName>\n            <lastName>teste</lastName>\n            <dob>01/30/1984</dob>\n            <sex>M</sex>\n            <phone>(99) 99999-9999</phone>\n        </billing>\n        <transactionDetail>\n            <description>Pagamento Parcela Do caminhao</description>\n            <comments>Pagar ate dia 30</comments>\n            <emailSubject>Favor efetuar o pagamento</emailSubject>\n            <expirationDate>{{expiration_date}}</expirationDate>\n            <acceptPix>N</acceptPix>\n            <payType>\n                <creditCard>\n                    <processorID>1</processorID>\n                    <operation>sale</operation>\n                    <numberOfInstallments>12</numberOfInstallments>\n                    <currencyCode>BRL</currencyCode>\n                    <amount>950.28</amount>\n                </creditCard>\n            </payType>\n        </transactionDetail>\n        <recurring>\n            <startDate>{{start_date}}</startDate>\n            <period>monthly</period>\n            <numberOfInstallments>12</numberOfInstallments>\n            <failureThreshold>3</failureThreshold>\n            <amount>950.28</amount>\n        </recurring>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Edição de ordem de Pagamento - Recorrente  - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>update-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n        <referenceNum>{{reference_num}}</referenceNum>\n        <fraudCheck>N</fraudCheck>\n        <transactionDetail>\n            <description>Teste Editar - Pagamento Parcela Do Carro</description>\n            <comments>Pagar ate dia 45</comments>\n            <emailSubject>Favor efetuar o pagamento</emailSubject>\n            <expirationDate>{{expiration_date}}</expirationDate>\n            <payType>\n                <creditCard>\n                    <processorID>1</processorID>\n                    <operation>sale</operation>\n                    <numberOfInstallments>2</numberOfInstallments>\n                    <currencyCode>BRL</currencyCode>\n                    <amount>1000.00</amount>\n                </creditCard>\n            </payType>\n        </transactionDetail>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de ordem de Pagamento - Recorrente - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>get-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Cancelamento de ordem de Pagamento - Recorrente - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>cancel-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Crédito com PIX",
+					"item": [
+						{
+							"name": "Criação de ordem de Pagamento - Credit  - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var payOrderId = _.getFieldApiResponse('result', 'pay_order_id');\r",
+											"if (payOrderId != null){\r",
+											"    pm.collectionVariables.set(\"pay_order_id\", payOrderId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-payment-order</command>\n    <request>\n        <referenceNum>{{reference_num}}</referenceNum>\n        <userId>Flavis</userId>\n        <consumerAuthentication>Y</consumerAuthentication>\n        <fraudCheck>N</fraudCheck>\n        <billing>\n            <address>Rua teste, 0</address>\n            <address2>11 Andar</address2>\n            <city>São Paulo</city>\n            <state>SP</state>\n            <district>Santo André</district>\n            <postalcode>00000-000</postalcode>\n            <country>BR</country>\n            <email>teste@maxipago.com</email>\n            <customerIdExt>01234567890</customerIdExt>\n            <firstName>Maxipago</firstName>\n            <lastName>teste</lastName>\n            <dob>01/30/1984</dob>\n            <sex>M</sex>\n            <phone>(99) 99999-9999</phone>\n        </billing>\n        <shipping>\n            <name>Nome do comprador</name>\n            <address>Rua teste, 0</address>\n            <address2>11º Andar</address2>\n            <district>Santo André</district>\n            <city>São Paulo</city>\n            <state>AM</state>\n            <postalcode>00000-000</postalcode>\n            <country>BR</country>\n            <phone>(99) 99999-9999</phone>\n            <email>teste@maxipago.com</email>\n            <customerIdExt>01234567890</customerIdExt>\n            <dob>01/30/1984</dob>\n        </shipping>\n        <transactionDetail>\n            <description>Teste: Pagamento Parcela da moto 1 credit simulator 1</description>\n            <comments>Pagar ate dia 30</comments>\n            <emailSubject>Favor efetuar o pagamento</emailSubject>\n            <expirationDate>{{expiration_date}}</expirationDate>\n            <acceptPix>Y</acceptPix>\n            <payType>\n                <creditCard>\n                    <processorID>1</processorID>\n                    <operation>auth</operation>\n                    <numberOfInstallments>1</numberOfInstallments>\n                    <currencyCode>BRL</currencyCode>\n                    <amount>126.76</amount>\n                </creditCard>\n            </payType>\n        </transactionDetail>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de ordem de Pagamento - Credit  - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>get-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Cancelamento de ordem de Pagamento - Credit  - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>cancel-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Recorrencia com PIX",
+					"item": [
+						{
+							"name": "Criação de ordem de Pagamento - Recorrente - Approved",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var payOrderId = _.getFieldApiResponse('result', 'pay_order_id');\r",
+											"if (payOrderId != null){\r",
+											"    pm.collectionVariables.set(\"pay_order_id\", payOrderId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var referenceNum = _.randomValue();\r",
+											"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>add-payment-order</command>\n    <request>\n        <referenceNum>{{reference_num}}</referenceNum>\n        <consumerAuthentication>Y</consumerAuthentication>\n        <fraudCheck>N</fraudCheck>\n        <billing>\n            <address>Rua teste, 0</address>\n            <address2>11 Andar</address2>\n            <city>São Paulo</city>\n            <state>SP</state>\n            <district>Santo André</district>\n            <postalcode>00000-000</postalcode>\n            <country>BR</country>\n            <email>teste@maxipago.com</email>\n            <customerIdExt>01234567890</customerIdExt>\n            <firstName>Maxipago</firstName>\n            <lastName>teste</lastName>\n            <dob>01/30/1984</dob>\n            <sex>M</sex>\n            <phone>(99) 99999-9999</phone>\n        </billing>\n        <shipping>\n            <name>Nome do comprador</name>\n            <address>Rua teste, 0</address>\n            <address2>11º Andar</address2>\n            <district>Santo André</district>\n            <city>São Paulo</city>\n            <state>AM</state>\n            <postalcode>00000-000</postalcode>\n            <country>BR</country>\n            <phone>(99) 99999-9999</phone>\n            <email>teste@maxipago.com</email>\n            <customerIdExt>01234567890</customerIdExt>\n            <dob>01/30/1984</dob>\n        </shipping>\n        <transactionDetail>\n            <description>Pagamento Parcela Do caminhao</description>\n            <comments>Pagar ate dia 30</comments>\n            <emailSubject>Favor efetuar o pagamento</emailSubject>\n            <expirationDate>{{expiration_date}}</expirationDate>\n            <acceptPix>Y</acceptPix>\n            <payType>\n                <creditCard>\n                    <processorID>1</processorID>\n                    <operation>sale</operation>\n                    <numberOfInstallments>12</numberOfInstallments>\n                    <currencyCode>BRL</currencyCode>\n                    <amount>956.28</amount>\n                </creditCard>\n            </payType>\n        </transactionDetail>\n        <recurring>\n            <startDate>{{start_date}}</startDate>\n            <period>monthly</period>\n            <numberOfInstallments>12</numberOfInstallments>\n            <failureThreshold>3</failureThreshold>\n            <amount>956.28</amount>\n        </recurring>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Consulta de ordem de Pagamento - Recorrente - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>get-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Cancelamento de ordem de Pagamento - Recorrente - Approved",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>cancel-payment-order</command>\n    <request>\n        <payOrderId>{{pay_order_id}}</payOrderId>\n    </request>\n</api-request>"
+								},
+								"url": {
+									"raw": "{{base_url}}/UniversalAPI/postAPI",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"UniversalAPI",
+										"postAPI"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Recorrência",
+			"item": [
+				{
+					"name": "Criação de Pagamento Recorrente - Approved",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"_.saveSaleInformation(pm);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var referenceNum = _.randomValue();\r",
+									"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <recurringPayment>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <ipAddress>123.123.123.123</ipAddress>\n            <customerIdExt>46674194662</customerIdExt>\n            <billing>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <companyName>maxiPago!</companyName>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n            </billing>\n            <shipping>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n            </shipping>\n            <transactionDetail>\n                <payType>\n                    <creditCard>\n                        <number>5111111111111100</number>\n                        <expMonth>12</expMonth>\n                        <expYear>{{exp_year}}</expYear>\n                        <cvvNumber>954</cvvNumber>\n                    </creditCard>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>10.00</chargeTotal>\n                <currencyCode>BRL</currencyCode>\n            </payment>\n            <recurring>\n                <action>new</action>\n                <startDate>{{start_date}}</startDate>\n                <period>monthly</period>\n                <frequency>1</frequency>\n                <installments>12</installments>\n                <firstAmount>10.00</firstAmount>\n                <failureThreshold>15</failureThreshold>\n                <onFailureAction>skip</onFailureAction>\n            </recurring>\n        </recurringPayment>\n    </order>\n</transaction-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postXML",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postXML"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criação de Pagamento Recorrente - Declined",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var referenceNum = _.randomValue();\r",
+									"pm.collectionVariables.set(\"reference_num\", referenceNum);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<transaction-request>\n    <version>3.1.1.15</version>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <order>\n        <recurringPayment>\n            <processorID>1</processorID>\n            <referenceNum>{{reference_num}}</referenceNum>\n            <ipAddress>123.123.123.123</ipAddress>\n            <customerIdExt>46674194662</customerIdExt>\n            <billing>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <companyName>maxiPago!</companyName>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n            </billing>\n            <shipping>\n                <name>Nome do comprador</name>\n                <address>Rua teste, 0</address>\n                <address2>11º Andar</address2>\n                <district>Santo André</district>\n                <city>São Paulo</city>\n                <state>SP</state>\n                <postalcode>00000-000</postalcode>\n                <country>BR</country>\n                <phone>(99) 99999-9999</phone>\n                <email>teste@maxipago.com</email>\n                <type>Individual</type>\n                <gender>M</gender>\n                <birthDate>1959-05-25</birthDate>\n            </shipping>\n            <transactionDetail>\n                <payType>\n                    <creditCard>\n                        <number>5111111111111100</number>\n                        <expMonth>12</expMonth>\n                        <expYear>{{exp_year}}</expYear>\n                        <cvvNumber>954</cvvNumber>\n                    </creditCard>\n                </payType>\n            </transactionDetail>\n            <payment>\n                <chargeTotal>10.00</chargeTotal>\n                <currencyCode>BRL</currencyCode>\n            </payment>\n            <recurring>\n                <action>new</action>\n                <startDate>{{start_date}}</startDate>\n                <period>monthly</period>\n                <frequency>1</frequency>\n                <installments>12</installments>\n                <firstAmount>100.01</firstAmount>\n                <failureThreshold>15</failureThreshold>\n                <onFailureAction>skip</onFailureAction>\n            </recurring>\n        </recurringPayment>\n    </order>\n</transaction-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postXML",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postXML"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edição de Pagamento Recorrente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n    <verification>\n        <merchantId>{{MerchantId}}</merchantId>\n        <merchantKey>{{MerchantKey}}</merchantKey>\n    </verification>\n    <command>modify-recurring</command>\n    <request>\n        <orderID>{{order_id}}</orderID>\n        <paymentInfo>\n            <cardInfo>\n                <creditCardNumber>5111111111111100</creditCardNumber>\n                <expirationMonth>12</expirationMonth>\n                <expirationYear>{{exp_year}}</expirationYear>\n            </cardInfo>\n            <chargeTotal>12.00</chargeTotal>\n        </paymentInfo>\n        <recurring>\n            <processorID>1</processorID>\n            <action>disable</action>\n            <installments>10</installments>\n            <nextFireDate>{{start_date}}</nextFireDate>\n            <fireDay>20</fireDay>\n            <period>quarterly</period>\n            <lastDate>{{last_date}}</lastDate>\n            <lastAmount>105.00</lastAmount>\n        </recurring>\n        <billingInfo>\n            <name>Nome do comprador</name>\n            <address1>Rua teste, 0</address1>\n            <address2>11º Andar</address2>\n            <city>São Paulo</city>\n            <state>SP</state>\n            <zip>00000000</zip>\n            <country>BR</country>\n            <phone>(99) 99999-9999</phone>\n            <email>teste@maxipago.com</email>\n        </billingInfo>\n        <shippingInfo>\n            <name>Nome do comprador</name>\n            <address1>Rua teste, 0</address1>\n            <address2>11º Andar</address2>\n            <city>São Paulo</city>\n            <state>SP</state>\n            <zip>00000000</zip>\n            <country>BR</country>\n            <phone>(99) 99999-9999</phone>\n            <email>teste@maxipago.com</email>\n        </shippingInfo>\n    </request>\n</api-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postAPI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancelamento de Pagamento Recorrente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<api-request>\n\t<verification>\n\t\t<merchantId>{{MerchantId}}</merchantId>\n\t\t<merchantKey>{{MerchantKey}}</merchantKey>\n\t</verification>\n\t<command>cancel-recurring</command>\n\t<request>\n\t\t<orderID>{{order_id}}</orderID>\n\t</request>\n</api-request>"
+						},
+						"url": {
+							"raw": "{{base_url}}/UniversalAPI/postAPI",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"UniversalAPI",
+								"postAPI"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"const moment = require('moment');",
+							"",
+							"pm.collectionVariables.set('start_date', moment().add(1, 'months').format((\"YYYY-MM-DD\")));",
+							"pm.collectionVariables.set('last_date', moment().add(1, 'years').format((\"YYYY-MM-DD\")));"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"const moment = require('moment');",
+					"",
+					"var futureDate = moment().add(2, 'years');",
+					"pm.collectionVariables.set('future_date', futureDate.format((\"MM/DD/YYYY\")));",
+					"pm.collectionVariables.set('exp_year', futureDate.format((\"YYYY\")));",
+					"",
+					"var nextMonth = moment().add(1, 'months');",
+					"pm.collectionVariables.set('start_date', nextMonth.format((\"MM/DD/YYYY\")));",
+					"pm.collectionVariables.set('expiration_date', futureDate.format((\"MM/DD/YYYY\")));",
+					"",
+					"Object.prototype.randomValue = function () {",
+					"    return moment().format((\"YYYYMMDDHHmmSS\"));",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"let actualErrorCode = null;",
+					"// Validando status code para uma requisição ",
+					"pm.test(\"Validação do status code\", function () {",
+					"  pm.response.to.have.status(200);",
+					"});",
+					"",
+					"var expectedErrorCode = '0' // significa que a requisição foi realizada com sucesso",
+					"pm.test(\"Validação se a API retornou um erro na requisição\", function () {",
+					"    var jsonObject = xml2Json(responseBody);",
+					"    try{",
+					"        actualErrorCode = jsonObject['api-response']['errorCode'];",
+					"    }catch {",
+					"        pm.expect(actualErrorCode).to.be.oneOf([expectedErrorCode, null]);",
+					"    }",
+					"});",
+					"",
+					"//Recuperar o valor de um campo da resposta a partir dos parâmetros informados",
+					"Object.prototype.getFieldApiResponse = function (object, field) {",
+					"    var value = null;",
+					"    if (actualErrorCode == 0) {",
+					"        var jsonObject = xml2Json(responseBody);",
+					"        var value = jsonObject['api-response'][object][field];",
+					"    }",
+					"    return value;",
+					"}",
+					"",
+					"//Recuperar o valor de um campo da resposta a partir dos parâmetros informados",
+					"Object.prototype.getFieldResponse = function (object, field) {",
+					"    var value = null;",
+					"    var jsonObject = xml2Json(responseBody);",
+					"    var value = jsonObject[object][field];",
+					"    return value;",
+					"}",
+					"",
+					"Object.prototype.saveSaleInformation = function (pm) {",
+					"    var responseCode = _.getFieldResponse('transaction-response', 'responseCode');",
+					"    var orderId = _.getFieldResponse('transaction-response', 'orderID');",
+					"    var referenceNum = _.getFieldResponse('transaction-response', 'referenceNum');",
+					"    var transactionId = _.getFieldResponse('transaction-response', 'transactionID');",
+					"",
+					"    if (responseCode <= 1){",
+					"        pm.collectionVariables.set(\"order_id\", orderId);",
+					"        pm.collectionVariables.set(\"reference_num\", referenceNum);",
+					"        pm.collectionVariables.set(\"transaction_id\", transactionId);",
+					"    }",
+					"}",
+					"",
+					"",
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://testapi.maxipago.net",
+			"type": "string"
+		},
+		{
+			"key": "MerchantId",
+			"value": "<informe-merchantId>",
+			"type": "string"
+		},
+		{
+			"key": "MerchantKey",
+			"value": "<informe-merchantKey>",
+			"type": "string"
+		}
+	]
+}

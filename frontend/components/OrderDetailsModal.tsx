@@ -57,9 +57,26 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, on
 
   const handleCopyLink = () => {
     const link = `${window.location.origin}/checkout/${order.id}`;
-    navigator.clipboard.writeText(link);
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 2000);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(() => {
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 2000);
+      });
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy', err);
+      }
+      document.body.removeChild(textArea);
+    }
   };
 
   const formatCurrency = (val: number) => {
@@ -310,10 +327,28 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, on
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Método</p>
-                      <div className="flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-white">
-                        <span className="material-symbols-outlined text-slate-400">payments</span>
-                        Asaas Checkout
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Método de Pagamento</p>
+                      <div className="flex flex-col gap-1 text-sm font-medium text-slate-900 dark:text-white">
+                        {order.transactions && order.transactions.length > 0 ? (
+                          order.transactions.map((t: any, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-slate-400 text-[18px]">
+                                {t.type === 'PIX' ? 'pix' : 'credit_card'}
+                              </span>
+                              <span>
+                                {t.type === 'PIX'
+                                  ? 'Pix'
+                                  : `Cartão final ${t.metadata?.card?.last4 || '****'} (${t.metadata?.card?.installments || 1}x)`
+                                }
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-slate-400 text-[18px]">payments</span>
+                            <span>Link de Pagamento (Asaas)</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -322,12 +357,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, on
                         {order.status === 'PAID' ? formatDateTime(order.updatedAt) : '-'}
                       </p>
                     </div>
-                    <div className="col-span-2">
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Link de Pagamento</p>
-                      <a href={order.paymentLink?.asaasUrl} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline break-all">
-                        {order.paymentLink?.asaasUrl || '-'}
-                      </a>
-                    </div>
+
                   </div>
                 </div>
               </div>
@@ -345,11 +375,37 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, on
                     const address = order.customer?.addresses?.[0];
 
                     if (!address) {
-                      return <p className="text-sm text-slate-500 italic px-1">Endereço não informado.</p>;
+                      return (
+                        <div className="bg-slate-50 dark:bg-slate-800/30 rounded-lg p-6 border border-slate-200 dark:border-slate-800 text-center flex flex-col items-center gap-2">
+                          <span className="material-symbols-outlined text-3xl text-amber-500">storefront</span>
+                          <div>
+                            <p className="font-bold text-slate-900 dark:text-white text-lg">Retirada na Loja</p>
+                            <p className="text-sm text-slate-500">O cliente optou por retirar o pedido no balcão.</p>
+                          </div>
+                        </div>
+                      );
                     }
+
+                    const isMotoboy = ['Alfenas', 'Poços de Caldas', 'Machado'].some(city =>
+                      address.city?.toLowerCase().includes(city.toLowerCase())
+                    );
 
                     return (
                       <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          {isMotoboy ? (
+                            <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-1 rounded-md text-xs font-bold uppercase flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[16px]">two_wheeler</span>
+                              Entrega Local (Motoboy)
+                            </span>
+                          ) : (
+                            <span className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 px-2.5 py-1 rounded-md text-xs font-bold uppercase flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[16px]">local_shipping</span>
+                              Envio via Transportadora
+                            </span>
+                          )}
+                        </div>
+
                         <div>
                           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Logradouro</p>
                           <p className="text-sm font-medium text-slate-900 dark:text-white">

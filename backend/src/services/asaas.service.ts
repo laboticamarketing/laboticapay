@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { config } from '../config/env';
 
-const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'; // Sandbox by default
-const API_KEY = process.env.ASAAS_API_KEY;
+const ASAAS_API_URL = config.asaas.apiUrl;
+const API_KEY = config.asaas.apiKey;
 
 export const asaasService = {
     async getCustomerByCpf(cpfCnpj: string) {

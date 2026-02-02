@@ -1,15 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import * as customerController from '../controllers/customer.controller';
+import { requireAuth } from '../lib/middleware/auth.middleware';
 
 export async function customerRoutes(fastify: FastifyInstance) {
     // Protected routes - ensure JWT verification
-    fastify.addHook('onRequest', async (request, reply) => {
-        try {
-            await request.jwtVerify();
-        } catch (err) {
-            reply.send(err);
-        }
-    });
+    fastify.addHook('onRequest', requireAuth);
 
     fastify.post('/', customerController.createCustomer);
     fastify.get('/', customerController.listCustomers);

@@ -1,16 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import * as orderController from '../controllers/order.controller';
+import { requireAuth } from '../lib/middleware/auth.middleware';
 
 export async function orderRoutes(fastify: FastifyInstance) {
     // Protected routes - ensure JWT verification
-    fastify.addHook('onRequest', async (request, reply) => {
-        try {
-            await request.jwtVerify();
-        } catch (err) {
-            reply.send(err);
-        }
-    });
+    fastify.addHook('onRequest', requireAuth);
 
     fastify.post('/', orderController.createOrder);
     fastify.get('/stats', orderController.getOrderStats);

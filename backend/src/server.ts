@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
@@ -6,17 +7,16 @@ import fastifyStatic from '@fastify/static';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import path from 'path';
-import { PrismaClient } from '@prisma/client';
 import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
 import { globalErrorHandler } from './lib/errorHandler';
+import { prisma, disconnectPrisma } from './lib/prisma';
+import { config } from './config/env';
 import { authRoutes } from './routes/auth.routes';
 import { customerRoutes } from './routes/customer.routes';
 import { orderRoutes } from './routes/order.routes';
 import { asaasRoutes } from './routes/asaas.routes';
 import { dashboardRoutes } from './routes/dashboard.routes';
 import { checkoutRoutes } from './routes/checkout.routes';
-
-export const prisma = new PrismaClient();
 
 const server = Fastify({
     logger: true
@@ -43,7 +43,7 @@ server.register(rateLimit, {
 
 // Register CORS
 server.register(cors, {
-    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true,
+    origin: config.cors.origin,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
 });
@@ -63,7 +63,7 @@ server.register(fastifyStatic, {
 
 // Register JWT
 server.register(fastifyJwt, {
-    secret: process.env.JWT_SECRET || 'supersecret_change_me_in_prod'
+    secret: config.auth.jwtSecret
 });
 
 // Register Routes
@@ -79,14 +79,32 @@ server.get('/health', async (request, reply) => {
     return { status: 'ok', timestamp: new Date() };
 });
 
+// Graceful shutdown
+const gracefulShutdown = async (signal: string) => {
+    server.log.info(`Received ${signal}, starting graceful shutdown...`);
+    try {
+        await server.close();
+        await disconnectPrisma();
+        server.log.info('Graceful shutdown completed');
+        process.exit(0);
+    } catch (err) {
+        server.log.error(err as any, 'Error during graceful shutdown:');
+        process.exit(1);
+    }
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
 // Run the server
 const start = async () => {
     try {
-        const port = Number(process.env.PORT) || 4000;
-        await server.listen({ port, host: '0.0.0.0' });
-        console.log(`Server is running at http://localhost:${port}`);
+        await server.listen({ port: config.server.port, host: '0.0.0.0' });
+        console.log(`Server is running at http://localhost:${config.server.port}`);
+        console.log(`Environment: ${config.server.nodeEnv}`);
     } catch (err) {
-        server.log.error(err);
+        server.log.error(err as any);
+        await disconnectPrisma();
         process.exit(1);
     }
 };

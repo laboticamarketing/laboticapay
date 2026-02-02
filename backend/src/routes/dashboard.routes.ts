@@ -1,14 +1,9 @@
 import { FastifyInstance } from 'fastify';
 import * as dashboardController from '../controllers/dashboard.controller';
+import { requireAuth } from '../lib/middleware/auth.middleware';
 
 export async function dashboardRoutes(fastify: FastifyInstance) {
-    fastify.addHook('onRequest', async (request, reply) => {
-        try {
-            await request.jwtVerify();
-        } catch (err) {
-            reply.send(err);
-        }
-    });
+    fastify.addHook('onRequest', requireAuth);
 
     fastify.get('/stats', dashboardController.getDashboardStats);
 }

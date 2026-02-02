@@ -1,7 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
 
 export const createCustomer = async (request: FastifyRequest<{ Body: { name: string; email?: string; phone: string; cpf?: string; birthDate?: string; addresses?: any[]; notes?: string } }>, reply: FastifyReply) => {
     const { name, email, phone, cpf, birthDate, addresses, notes } = request.body;

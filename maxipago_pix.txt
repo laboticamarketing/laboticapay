@@ -1,0 +1,669 @@
+NAME: Criação de Pagamento PIX - Approved
+BODY:
+<transaction-request>
+    <version>3.1.1.15</version>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <order>
+        <sale>
+            <processorID>1</processorID>
+            <referenceNum>{{reference_num}}</referenceNum>
+            <fraudCheck>N</fraudCheck>
+            <customerIdExt>46674194662</customerIdExt>
+            <billing>
+                <name>Nome do comprador</name>
+                <address>Rua teste, 0</address>
+                <address2>11º Andar</address2>
+                <district>Santo André</district>
+                <city>São Paulo</city>
+                <state>SP</state>
+                <postalcode>00000-000</postalcode>
+                <country>BR</country>
+                <phone>(99) 99999-9999</phone>
+                <email>teste@maxipago.com</email>
+                <companyName>maxiPago!</companyName>
+                <type>Individual</type>
+                <gender>M</gender>
+                <birthDate>1959-05-25</birthDate>
+                <phones>
+                    <phone>
+                        <phoneType>Commercial</phoneType>
+                        <phoneCountryCode>55</phoneCountryCode>
+                        <phoneAreaCode>92</phoneAreaCode>
+                        <phoneNumber>99999-9999</phoneNumber>
+                        <phoneExtension>123</phoneExtension>
+                    </phone>
+                    <phone>
+                        <phoneType>Mobile</phoneType>
+                        <phoneCountryCode>55</phoneCountryCode>
+                        <phoneAreaCode>99</phoneAreaCode>
+                        <phoneNumber>99999-9999</phoneNumber>
+                    </phone>
+                </phones>
+                <documents>
+                    <document>
+                        <documentType>CPF</documentType>
+                        <documentValue>123.456.789-00</documentValue>
+                    </document>
+                    <document>
+                        <documentType>RG</documentType>
+                        <documentValue>12.345.678-9</documentValue>
+                    </document>
+                </documents>
+            </billing>
+            <shipping>
+                <name>Nome do comprador</name>
+                <address>Rua teste, 0</address>
+                <address2>11º Andar</address2>
+                <district>Santo André</district>
+                <city>São Paulo</city>
+                <state>SP</state>
+                <postalcode>00000-000</postalcode>
+                <country>BR</country>
+                <phone>(99) 99999-9999</phone>
+                <email>teste@maxipago.com</email>
+                <type>Individual</type>
+                <gender>M</gender>
+                <birthDate>1959-05-25</birthDate>
+                <phones>
+                    <phone>
+                        <phoneType>Commercial</phoneType>
+                        <phoneCountryCode>55</phoneCountryCode>
+                        <phoneAreaCode>92</phoneAreaCode>
+                        <phoneNumber>99999-9999</phoneNumber>
+                        <phoneExtension>123</phoneExtension>
+                    </phone>
+                    <phone>
+                        <phoneType>Mobile</phoneType>
+                        <phoneCountryCode>55</phoneCountryCode>
+                        <phoneAreaCode>99</phoneAreaCode>
+                        <phoneNumber>99999-9999</phoneNumber>
+                    </phone>
+                </phones>
+                <documents>
+                    <document>
+                        <documentType>CPF</documentType>
+                        <documentValue>123.456.789-00</documentValue>
+                    </document>
+                    <document>
+                        <documentType>RG</documentType>
+                        <documentValue>12.345.678-9</documentValue>
+                    </document>
+                </documents>
+            </shipping>
+            <transactionDetail>
+                <payType>
+                    <pix>
+                        <expirationTime>86400</expirationTime>
+                        <paymentInfo>Smart TV LG 65´ 8K IPS NanoCell, Conexão WiFi e Bluetooth</paymentInfo>
+                        <extraInfo>
+                            <info>
+                                <name>TV8k</name>
+                                <value>R$10000.00</value>
+                            </info>
+                            <info>
+                                <name>Garantia Estendida</name>
+                                <value>R$6.00</value>
+                            </info>
+                        </extraInfo>
+                    </pix>
+                </payType>
+            </transactionDetail>
+            <payment>
+                <chargeTotal>10006.00</chargeTotal>
+            </payment>
+        </sale>
+    </order>
+</transaction-request>
+----------------
+NAME: Criação de Pagamento PIX - Declined
+BODY:
+<transaction-request>
+    <version>3.1.1.15</version>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <order>
+        <sale>
+            <processorID>200</processorID>
+            <referenceNum>{{reference_num}}</referenceNum>
+            <fraudCheck>N</fraudCheck>
+            <customerIdExt>46674194662</customerIdExt>
+            <billing>
+                <name>Nome do comprador</name>
+                <address>Rua teste, 0</address>
+                <address2>11º Andar</address2>
+                <district>Santo André</district>
+                <city>São Paulo</city>
+                <state>SP</state>
+                <postalcode>00000-000</postalcode>
+                <country>BR</country>
+                <phone>(99) 99999-9999</phone>
+                <email>teste@maxipago.com</email>
+                <companyName>maxiPago!</companyName>
+                <type>Individual</type>
+                <gender>M</gender>
+                <birthDate>1959-05-25</birthDate>
+                <phones>
+                    <phone>
+                        <phoneType>Commercial</phoneType>
+                        <phoneCountryCode>55</phoneCountryCode>
+                        <phoneAreaCode>92</phoneAreaCode>
+                        <phoneNumber>99999-9999</phoneNumber>
+                        <phoneExtension>123</phoneExtension>
+                    </phone>
+                    <phone>
+                        <phoneType>Mobile</phoneType>
+                        <phoneCountryCode>55</phoneCountryCode>
+                        <phoneAreaCode>99</phoneAreaCode>
+                        <phoneNumber>99999-9999</phoneNumber>
+                    </phone>
+                </phones>
+                <documents>
+                    <document>
+                        <documentType>CPF</documentType>
+                        <documentValue>123.456.789-00</documentValue>
+                    </document>
+                    <document>
+                        <documentType>RG</documentType>
+                        <documentValue>12.345.678-9</documentValue>
+                    </document>
+                </documents>
+            </billing>
+            <shipping>
+                <name>Nome do comprador</name>
+                <address>Rua teste, 0</address>
+                <address2>11º Andar</address2>
+                <district>Santo André</district>
+                <city>São Paulo</city>
+                <state>SP</state>
+                <postalcode>00000-000</postalcode>
+                <country>BR</country>
+                <phone>(99) 99999-9999</phone>
+                <email>teste@maxipago.com</email>
+                <type>Individual</type>
+                <gender>M</gender>
+                <birthDate>1959-05-25</birthDate>
+                <phones>
+                    <phone>
+                        <phoneType>Commercial</phoneType>
+                        <phoneCountryCode>55</phoneCountryCode>
+                        <phoneAreaCode>92</phoneAreaCode>
+                        <phoneNumber>99999-9999</phoneNumber>
+                        <phoneExtension>123</phoneExtension>
+                    </phone>
+                    <phone>
+                        <phoneType>Mobile</phoneType>
+                        <phoneCountryCode>55</phoneCountryCode>
+                        <phoneAreaCode>99</phoneAreaCode>
+                        <phoneNumber>99999-9999</phoneNumber>
+                    </phone>
+                </phones>
+                <documents>
+                    <document>
+                        <documentType>CPF</documentType>
+                        <documentValue>123.456.789-00</documentValue>
+                    </document>
+                    <document>
+                        <documentType>RG</documentType>
+                        <documentValue>12.345.678-9</documentValue>
+                    </document>
+                </documents>
+            </shipping>
+            <transactionDetail>
+                <payType>
+                    <pix>
+                        <expirationTime>86400</expirationTime>
+                        <paymentInfo>Smart TV LG 65´ 8K IPS NanoCell, Conexão WiFi e Bluetooth</paymentInfo>
+                        <extraInfo>
+                            <info>
+                                <name>TV8k</name>
+                                <value>R$10000.00</value>
+                            </info>
+                            <info>
+                                <name>Garantia Estendida</name>
+                                <value>R$5.01</value>
+                            </info>
+                        </extraInfo>
+                    </pix>
+                </payType>
+            </transactionDetail>
+            <payment>
+                <chargeTotal>10005.01</chargeTotal>
+            </payment>
+        </sale>
+    </order>
+</transaction-request>
+----------------
+NAME: Refund Pagamento PIX (Depois Pagamento)
+BODY:
+<transaction-request>
+    <version>3.1.1.15</version>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <order>
+        <pixReturn>
+            <orderID>{{order_id}}</orderID>
+            <referenceNum>{{reference_num}}</referenceNum>
+            <payment>
+                <chargeTotal>10.00</chargeTotal>
+            </payment>
+        </pixReturn>
+    </order>
+</transaction-request>
+----------------
+NAME: Criação de ordem de Pagamento - Recorrente - Approved
+BODY:
+<?xml version="1.0" encoding="UTF-8"?>
+<api-request>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <command>add-payment-order</command>
+    <request>
+        <referenceNum>{{reference_num}}</referenceNum>
+        <consumerAuthentication>N</consumerAuthentication>
+        <fraudCheck>N</fraudCheck>
+        <billing>
+            <email>teste@maxipago.com</email>
+            <firstName>Teste</firstName>
+            <lastName>Maxipay</lastName>
+        </billing>
+        <transactionDetail>
+            <description>Pagamento Parcela Do caminhao</description>
+            <comments>Pagar ate dia 30</comments>
+            <emailSubject>Favor efetuar o pagamento</emailSubject>
+            <expirationDate>{{expiration_date}}</expirationDate>
+            <acceptPix>N</acceptPix>
+            <payType>
+                <creditCard>
+                    <processorID>1</processorID>
+                    <operation>sale</operation>
+                    <numberOfInstallments>12</numberOfInstallments>
+                    <currencyCode>BRL</currencyCode>
+                    <amount>952.28</amount>
+                </creditCard>
+            </payType>
+        </transactionDetail>
+        <recurring>
+            <startDate>{{start_date}}</startDate>
+            <period>monthly</period>
+            <numberOfInstallments>12</numberOfInstallments>
+            <failureThreshold>3</failureThreshold>
+            <amount>952.28</amount>
+        </recurring>
+    </request>
+</api-request>
+----------------
+NAME: Criação de ordem de Pagamento com Pix - Recorrente - Approved
+BODY:
+<?xml version="1.0" encoding="UTF-8"?>
+<api-request>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <command>add-payment-order</command>
+    <request>
+        <referenceNum>{{reference_num}}</referenceNum>
+        <consumerAuthentication>N</consumerAuthentication>
+        <fraudCheck>N</fraudCheck>
+        <billing>
+            <email>teste@maxipago.com</email>
+            <firstName>Teste</firstName>
+            <lastName>Maxipay</lastName>
+        </billing>
+        <transactionDetail>
+            <description>Pagamento Parcela Do caminhao</description>
+            <comments>Pagar ate dia 30</comments>
+            <emailSubject>Favor efetuar o pagamento</emailSubject>
+            <expirationDate>{{expiration_date}}</expirationDate>
+            <acceptPix>Y</acceptPix>
+            <payType>
+                <creditCard>
+                    <processorID>1</processorID>
+                    <operation>sale</operation>
+                    <numberOfInstallments>12</numberOfInstallments>
+                    <currencyCode>BRL</currencyCode>
+                    <amount>942.28</amount>
+                </creditCard>
+            </payType>
+        </transactionDetail>
+        <recurring>
+            <startDate>{{start_date}}</startDate>
+            <period>monthly</period>
+            <numberOfInstallments>12</numberOfInstallments>
+            <failureThreshold>3</failureThreshold>
+            <amount>942.28</amount>
+        </recurring>
+    </request>
+</api-request>
+----------------
+NAME: Criação de ordem de Pagamento - Credit  - Approved
+BODY:
+<api-request>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <command>add-payment-order</command>
+    <request>
+        <referenceNum>{{reference_num}}</referenceNum>
+        <userId>Flavis</userId>
+        <consumerAuthentication>N</consumerAuthentication>
+        <fraudCheck>N</fraudCheck>
+        <billing>
+            <email>teste@maxipago.com</email>
+            <firstName>Maxipago</firstName>
+            <lastName>Teste</lastName>
+        </billing>
+        <transactionDetail>
+            <description>Teste: Pagamento Parcela da moto 1 credit simulator 1</description>
+            <comments>Pagar ate dia 30</comments>
+            <emailSubject>Favor efetuar o pagamento</emailSubject>
+            <expirationDate>{{expiration_date}}</expirationDate>
+            <acceptPix>N</acceptPix>
+            <payType>
+                <creditCard>
+                    <processorID>1</processorID>
+                    <operation>auth</operation>
+                    <numberOfInstallments>1</numberOfInstallments>
+                    <currencyCode>BRL</currencyCode>
+                    <amount>128.76</amount>
+                </creditCard>
+            </payType>
+        </transactionDetail>
+    </request>
+</api-request>
+----------------
+NAME: Criação de ordem de Pagamento - Credit  - Approved
+BODY:
+<api-request>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <command>add-payment-order</command>
+    <request>
+        <referenceNum>{{reference_num}}</referenceNum>
+        <userId>Flavis5</userId>
+        <consumerAuthentication>N</consumerAuthentication>
+        <fraudCheck>N</fraudCheck>
+        <billing>
+            <email>teste@maxipago.com</email>
+            <firstName>Maxipago</firstName>
+            <lastName>Brasil</lastName>
+        </billing>
+        <transactionDetail>
+            <description>Teste: Pagamento Parcela da moto 1 credit simulator 1</description>
+            <comments>Pagar ate dia 30</comments>
+            <emailSubject>Favor efetuar o pagamento</emailSubject>
+            <expirationDate>{{expiration_date}}</expirationDate>
+            <acceptPix>Y</acceptPix>
+            <payType>
+                <creditCard>
+                    <processorID>1</processorID>
+                    <operation>auth</operation>
+                    <numberOfInstallments>1</numberOfInstallments>
+                    <currencyCode>BRL</currencyCode>
+                    <amount>126.76</amount>
+                </creditCard>
+            </payType>
+        </transactionDetail>
+    </request>
+</api-request>
+----------------
+NAME: Criação de ordem de Pagamento - Credit  - Approved
+BODY:
+<api-request>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <command>add-payment-order</command>
+    <request>
+        <referenceNum>{{reference_num}}</referenceNum>
+        <userId>Flavis</userId>
+        <consumerAuthentication>Y</consumerAuthentication>
+        <fraudCheck>N</fraudCheck>
+        <billing>
+            <address>Rua teste, 0</address>
+            <address2>11 Andar</address2>
+            <city>São Paulo</city>
+            <state>SP</state>
+            <district>Santo André</district>
+            <postalcode>00000-000</postalcode>
+            <country>BR</country>
+            <email>teste@maxipago.com</email>
+            <customerIdExt>01234567890</customerIdExt>
+            <firstName>Maxipago</firstName>
+            <lastName>teste</lastName>
+            <dob>01/30/1984</dob>
+            <sex>M</sex>
+            <phone>(99) 99999-9999</phone>
+        </billing>
+        <shipping>
+            <name>Nome do comprador</name>
+            <address>Rua teste, 0</address>
+            <address2>11º Andar</address2>
+            <district>Santo André</district>
+            <city>São Paulo</city>
+            <state>AM</state>
+            <postalcode>00000-000</postalcode>
+            <country>BR</country>
+            <phone>(99) 99999-9999</phone>
+            <email>teste@maxipago.com</email>
+            <customerIdExt>01234567890</customerIdExt>
+            <dob>01/30/1984</dob>
+        </shipping>
+        <transactionDetail>
+            <description>Teste: Pagamento Parcela da moto 1 credit simulator 1</description>
+            <comments>Pagar ate dia 30</comments>
+            <emailSubject>Favor efetuar o pagamento</emailSubject>
+            <expirationDate>{{expiration_date}}</expirationDate>
+            <acceptPix>N</acceptPix>
+            <payType>
+                <creditCard>
+                    <processorID>1</processorID>
+                    <operation>auth</operation>
+                    <numberOfInstallments>1</numberOfInstallments>
+                    <currencyCode>BRL</currencyCode>
+                    <amount>120.76</amount>
+                </creditCard>
+            </payType>
+        </transactionDetail>
+    </request>
+</api-request>
+----------------
+NAME: Criação de ordem de Pagamento - Recorrente - Approved
+BODY:
+<?xml version="1.0" encoding="UTF-8"?>
+<api-request>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <command>add-payment-order</command>
+    <request>
+        <referenceNum>{{reference_num}}</referenceNum>
+        <consumerAuthentication>N</consumerAuthentication>
+        <fraudCheck>Y</fraudCheck>
+        <billing>
+            <address>Rua teste, 0</address>
+            <address2>11 Andar</address2>
+            <city>São Paulo</city>
+            <state>SP</state>
+            <district>Santo André</district>
+            <postalcode>00000-000</postalcode>
+            <country>BR</country>
+            <email>teste@maxipago.com</email>
+            <customerIdExt>01234567890</customerIdExt>
+            <firstName>Maxipago</firstName>
+            <lastName>teste</lastName>
+            <dob>01/30/1984</dob>
+            <sex>M</sex>
+            <phone>(99) 99999-9999</phone>
+        </billing>
+        <transactionDetail>
+            <description>Pagamento Parcela Do caminhao</description>
+            <comments>Pagar ate dia 30</comments>
+            <emailSubject>Favor efetuar o pagamento</emailSubject>
+            <expirationDate>{{expiration_date}}</expirationDate>
+            <acceptPix>N</acceptPix>
+            <payType>
+                <creditCard>
+                    <processorID>1</processorID>
+                    <operation>sale</operation>
+                    <numberOfInstallments>12</numberOfInstallments>
+                    <currencyCode>BRL</currencyCode>
+                    <amount>950.28</amount>
+                </creditCard>
+            </payType>
+        </transactionDetail>
+        <recurring>
+            <startDate>{{start_date}}</startDate>
+            <period>monthly</period>
+            <numberOfInstallments>12</numberOfInstallments>
+            <failureThreshold>3</failureThreshold>
+            <amount>950.28</amount>
+        </recurring>
+    </request>
+</api-request>
+----------------
+NAME: Criação de ordem de Pagamento - Credit  - Approved
+BODY:
+<api-request>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <command>add-payment-order</command>
+    <request>
+        <referenceNum>{{reference_num}}</referenceNum>
+        <userId>Flavis</userId>
+        <consumerAuthentication>Y</consumerAuthentication>
+        <fraudCheck>N</fraudCheck>
+        <billing>
+            <address>Rua teste, 0</address>
+            <address2>11 Andar</address2>
+            <city>São Paulo</city>
+            <state>SP</state>
+            <district>Santo André</district>
+            <postalcode>00000-000</postalcode>
+            <country>BR</country>
+            <email>teste@maxipago.com</email>
+            <customerIdExt>01234567890</customerIdExt>
+            <firstName>Maxipago</firstName>
+            <lastName>teste</lastName>
+            <dob>01/30/1984</dob>
+            <sex>M</sex>
+            <phone>(99) 99999-9999</phone>
+        </billing>
+        <shipping>
+            <name>Nome do comprador</name>
+            <address>Rua teste, 0</address>
+            <address2>11º Andar</address2>
+            <district>Santo André</district>
+            <city>São Paulo</city>
+            <state>AM</state>
+            <postalcode>00000-000</postalcode>
+            <country>BR</country>
+            <phone>(99) 99999-9999</phone>
+            <email>teste@maxipago.com</email>
+            <customerIdExt>01234567890</customerIdExt>
+            <dob>01/30/1984</dob>
+        </shipping>
+        <transactionDetail>
+            <description>Teste: Pagamento Parcela da moto 1 credit simulator 1</description>
+            <comments>Pagar ate dia 30</comments>
+            <emailSubject>Favor efetuar o pagamento</emailSubject>
+            <expirationDate>{{expiration_date}}</expirationDate>
+            <acceptPix>Y</acceptPix>
+            <payType>
+                <creditCard>
+                    <processorID>1</processorID>
+                    <operation>auth</operation>
+                    <numberOfInstallments>1</numberOfInstallments>
+                    <currencyCode>BRL</currencyCode>
+                    <amount>126.76</amount>
+                </creditCard>
+            </payType>
+        </transactionDetail>
+    </request>
+</api-request>
+----------------
+NAME: Criação de ordem de Pagamento - Recorrente - Approved
+BODY:
+<?xml version="1.0" encoding="UTF-8"?>
+<api-request>
+    <verification>
+        <merchantId>{{MerchantId}}</merchantId>
+        <merchantKey>{{MerchantKey}}</merchantKey>
+    </verification>
+    <command>add-payment-order</command>
+    <request>
+        <referenceNum>{{reference_num}}</referenceNum>
+        <consumerAuthentication>Y</consumerAuthentication>
+        <fraudCheck>N</fraudCheck>
+        <billing>
+            <address>Rua teste, 0</address>
+            <address2>11 Andar</address2>
+            <city>São Paulo</city>
+            <state>SP</state>
+            <district>Santo André</district>
+            <postalcode>00000-000</postalcode>
+            <country>BR</country>
+            <email>teste@maxipago.com</email>
+            <customerIdExt>01234567890</customerIdExt>
+            <firstName>Maxipago</firstName>
+            <lastName>teste</lastName>
+            <dob>01/30/1984</dob>
+            <sex>M</sex>
+            <phone>(99) 99999-9999</phone>
+        </billing>
+        <shipping>
+            <name>Nome do comprador</name>
+            <address>Rua teste, 0</address>
+            <address2>11º Andar</address2>
+            <district>Santo André</district>
+            <city>São Paulo</city>
+            <state>AM</state>
+            <postalcode>00000-000</postalcode>
+            <country>BR</country>
+            <phone>(99) 99999-9999</phone>
+            <email>teste@maxipago.com</email>
+            <customerIdExt>01234567890</customerIdExt>
+            <dob>01/30/1984</dob>
+        </shipping>
+        <transactionDetail>
+            <description>Pagamento Parcela Do caminhao</description>
+            <comments>Pagar ate dia 30</comments>
+            <emailSubject>Favor efetuar o pagamento</emailSubject>
+            <expirationDate>{{expiration_date}}</expirationDate>
+            <acceptPix>Y</acceptPix>
+            <payType>
+                <creditCard>
+                    <processorID>1</processorID>
+                    <operation>sale</operation>
+                    <numberOfInstallments>12</numberOfInstallments>
+                    <currencyCode>BRL</currencyCode>
+                    <amount>956.28</amount>
+                </creditCard>
+            </payType>
+        </transactionDetail>
+        <recurring>
+            <startDate>{{start_date}}</startDate>
+            <period>monthly</period>
+            <numberOfInstallments>12</numberOfInstallments>
+            <failureThreshold>3</failureThreshold>
+            <amount>956.28</amount>
+        </recurring>
+    </request>
+</api-request>
+----------------

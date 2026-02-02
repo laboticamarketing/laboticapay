@@ -123,6 +123,7 @@ model Order {
   id             String       @id @default(uuid())
   totalValue     Decimal      @db.Decimal(10, 2)
   shippingValue  Decimal?     @db.Decimal(10, 2)
+  originalShippingValue Decimal? @db.Decimal(10, 2)
   shippingType   ShippingType @default(DYNAMIC)
   discountValue  Decimal?     @db.Decimal(10, 2)
   discountType   String?      // 'FIXED' or 'PERCENTAGE'

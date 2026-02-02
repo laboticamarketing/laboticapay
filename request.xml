@@ -1,0 +1,25 @@
+
+<transaction-request>
+    <version>3.1.1.15</version>
+    <verification>
+        <merchantId>37570</merchantId>
+        <merchantKey>ek2fmt1bbm7hed84usfsw1pw</merchantKey>
+    </verification>
+    <order>
+        <sale>
+            <processorID>1</processorID>
+            <referenceNum>Ref-639026972604140714</referenceNum>
+            <fraudCheck>N</fraudCheck>
+            <transactionDetail>
+                <payType>
+                    <pix>
+                        <expirationTime>3600</expirationTime>
+                    </pix>
+                </payType>
+            </transactionDetail>
+            <payment>
+                <chargeTotal>10.00</chargeTotal>
+            </payment>
+        </sale>
+    </order>
+</transaction-request>

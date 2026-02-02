@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { prisma } from '../server';
+import { prisma } from '../lib/prisma';
 import { asaasService } from '../services/asaas.service';
 import { supabase } from '../lib/supabase';
 import { customerService } from '../services/customer.service';
@@ -71,6 +71,7 @@ export const createOrder = async (request: FastifyRequest<{ Body: CreateOrderBod
                 customerId: finalCustomerId,
                 totalValue,
                 shippingValue,
+                originalShippingValue: shippingValue,
                 shippingType,
                 discountValue,
                 discountType,
@@ -441,115 +442,12 @@ export const processCheckout = async (request: FastifyRequest<{
             return reply.send({ success: true, message: 'Dados salvos com sucesso.' });
         }
 
-        // 4. Generate Asaas Link (if not exists)
-        if (!order.paymentLink?.asaasUrl) {
-            // Need address details for Asaas. 
-            // If we have targetAddressId, fetch it. If provided in body, use it.
-            let asaasAddr = {
-                street: address?.street,
-                number: address?.number,
-                neighborhood: address?.neighborhood,
-                zip: address?.zip
-            };
-
-            if (targetAddressId && !address) {
-                const dbAddr = await prisma.address.findUnique({ where: { id: targetAddressId } });
-                if (dbAddr) {
-                    asaasAddr = {
-                        street: dbAddr.street,
-                        number: dbAddr.number,
-                        neighborhood: dbAddr.neighborhood,
-                        zip: dbAddr.zip
-                    };
-                }
-            }
-
-            // Create in Asaas
-            const asaasCustomer = await asaasService.createCustomer({
-                name,
-                cpfCnpj: cpf,
-                email,
-                mobilePhone: phone,
-                address: asaasAddr.street,
-                addressNumber: asaasAddr.number,
-                province: asaasAddr.neighborhood,
-                postalCode: asaasAddr.zip
-            });
-
-            // Update local customer with Asaas ID
-            await prisma.customer.update({
-                where: { id: finalCustomerId },
-                data: { asaasId: asaasCustomer.id }
-            });
-
-            // Calculate absolute discount for Asaas (sending as FIXED to match frontend logic)
-            let discountObj: { value: number; type: 'FIXED' | 'PERCENTAGE' } | undefined = undefined;
-            if (order.discountValue && Number(order.discountValue) > 0) {
-                const totalFormula = Number(order.totalValue);
-                let amount = 0;
-                if (order.discountType === 'PERCENTAGE') {
-                    // Discount on formula only
-                    amount = (totalFormula * Number(order.discountValue)) / 100;
-                } else {
-                    amount = Number(order.discountValue);
-                }
-                // Safety math round
-                amount = Math.round(amount * 100) / 100;
-
-                discountObj = {
-                    value: amount,
-                    type: 'FIXED'
-                };
-            }
-
-            const payment = await asaasService.createPaymentLink({
-                customer: asaasCustomer.id,
-                billingType: 'UNDEFINED',
-                value: Number(order.totalValue) + Number(order.shippingValue || 0),
-                dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                description: `Pedido Farmapay #${order.id}`,
-                externalReference: order.id,
-                discount: discountObj
-            });
-
-            // Update Payment Link
-            if (order.paymentLink) {
-                await prisma.paymentLink.update({
-                    where: { id: order.paymentLink.id },
-                    data: {
-                        asaasPaymentId: payment.id,
-                        asaasUrl: payment.invoiceUrl,
-                        status: payment.status || 'PENDING'
-                    }
-                });
-            } else {
-                // Should have been created as draft, but if missing, create now
-                await prisma.paymentLink.create({
-                    data: {
-                        orderId: order.id,
-                        asaasPaymentId: payment.id,
-                        asaasUrl: payment.invoiceUrl,
-                        status: payment.status || 'PENDING'
-                    }
-                });
-            }
-
-            return reply.send({ redirectUrl: payment.invoiceUrl });
-        } else {
-            // Link already exists, return it
-            return reply.send({ redirectUrl: order.paymentLink.asaasUrl });
-        }
-
+        // 4. Legacy Asaas Link Generation - REMOVED
+        // The new flow uses CheckoutController for payments.
+        return reply.send({ success: true, message: 'Updated (Legacy Flow)' });
     } catch (error: any) {
         request.log.error(error);
-        const errorData = error.response?.data || error.message;
-
-        let errorMessage = "Erro ao processar checkout.";
-        if (errorData?.errors && Array.isArray(errorData.errors)) {
-            errorMessage += " " + errorData.errors.map((e: any) => e.description).join(", ");
-        }
-
-        reply.status(500).send({ error: errorMessage });
+        reply.status(500).send({ error: 'Internal Error in Legacy Checkout' });
     }
 };
 

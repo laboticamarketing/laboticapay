@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { prisma } from '../server';
+import { prisma } from '../lib/prisma';
 import { startOfDay, startOfMonth, subDays, format } from 'date-fns';
 
 export const getDashboardStats = async (request: FastifyRequest, reply: FastifyReply) => {

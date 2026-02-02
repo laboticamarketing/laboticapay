@@ -1,8 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
+import { prisma } from '../lib/prisma';
 import { supabase } from '../lib/supabase';
 import * as bcrypt from 'bcryptjs';
 
