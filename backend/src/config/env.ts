@@ -5,29 +5,29 @@ import { z } from 'zod';
  * Valida todas as variáveis necessárias no startup da aplicação
  */
 const envSchema = z.object({
-    // Server
-    NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-    PORT: z.coerce.number().default(4000),
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    PORT: z.coerce.number().default(3333),
+    HOST: z.string().default('0.0.0.0'),
 
     // Database
-    DATABASE_URL: z.string().url('DATABASE_URL deve ser uma URL válida'),
+    DATABASE_URL: z.string().url(),
 
-    // Authentication
-    JWT_SECRET: z.string().min(16, 'JWT_SECRET deve ter pelo menos 16 caracteres'),
+    // Auth
+    JWT_SECRET: z.string(),
 
     // CORS
-    CORS_ORIGIN: z.string().optional(),
+    CORS_ORIGIN: z.string().default('*'),
 
     // Supabase
-    SUPABASE_URL: z.string().url('SUPABASE_URL deve ser uma URL válida').optional(),
-    SUPABASE_KEY: z.string().optional(),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+    SUPABASE_URL: z.string().url(),
+    SUPABASE_ANON_KEY: z.string(),
+    SUPABASE_SERVICE_ROLE_KEY: z.string(),
 
-
-    // MaxiPago Payment Gateway
-    MAXIPAGO_MERCHANT_ID: z.string().optional(),
-    MAXIPAGO_MERCHANT_KEY: z.string().optional(),
-    MAXIPAGO_API_URL: z.string().url('MAXIPAGO_API_URL deve ser uma URL válida').optional(),
+    // Maxipago
+    MAXIPAGO_MERCHANT_ID: z.string().min(1),
+    MAXIPAGO_MERCHANT_KEY: z.string().min(1),
+    MAXIPAGO_API_URL: z.string().url().default('https://api.maxipago.net/UniversalAPI/postXML'),
+    MAXIPAGO_PROCESSOR_ID: z.string().default('1'),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -81,13 +81,14 @@ export const config = {
     },
     supabase: {
         url: env.SUPABASE_URL || '',
-        key: env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || '',
+        key: env.SUPABASE_SERVICE_ROLE_KEY || '',
+        anonKey: env.SUPABASE_ANON_KEY || ''
     },
 
     maxipago: {
-        merchantId: process.env.MAXIPAGO_MERCHANT_ID,
-        merchantKey: process.env.MAXIPAGO_MERCHANT_KEY,
-        apiUrl: process.env.MAXIPAGO_API_URL || 'https://api.maxipago.net/UniversalAPI/postXML',
-        processorId: process.env.MAXIPAGO_PROCESSOR_ID || '1' // Default to 1 (Simulator)
+        merchantId: env.MAXIPAGO_MERCHANT_ID,
+        merchantKey: env.MAXIPAGO_MERCHANT_KEY,
+        apiUrl: env.MAXIPAGO_API_URL,
+        processorId: env.MAXIPAGO_PROCESSOR_ID
     }
 } as const;
