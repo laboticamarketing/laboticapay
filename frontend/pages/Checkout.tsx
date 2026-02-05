@@ -11,6 +11,7 @@ import { CheckoutExtrasForm, ExtrasData } from '../components/CheckoutExtrasForm
 // --- Types & Context ---
 interface OrderDetails {
   id: string;
+  status: string; // Order status
   addressId?: string; // Correct selected address
   totalValue: number;
   shippingValue: number;
@@ -1122,7 +1123,10 @@ export const Checkout: React.FC = () => {
       setOrder(data);
 
       if (data.status === 'PAID') {
-        navigate('success', { replace: true });
+        // Prevent infinite loop by checking if we are already on the success page
+        if (!location.pathname.includes('/success')) {
+          navigate(`/checkout/${orderId}/success`, { replace: true });
+        }
         return;
       }
 
@@ -1183,7 +1187,8 @@ export const Checkout: React.FC = () => {
   // Fetch Order Data on Mount
   useEffect(() => {
     fetchOrder();
-  }, [orderId, location.pathname]); // Added location.pathname to dependencies for skip logic
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId]); // Remove location.pathname to prevent infinite refetch loop on navigation
 
   const submitOrder = async (paymentData: any) => {
     setIsProcessing(true);

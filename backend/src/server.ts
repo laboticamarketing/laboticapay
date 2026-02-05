@@ -14,7 +14,7 @@ import { config } from './config/env';
 import { authRoutes } from './routes/auth.routes';
 import { customerRoutes } from './routes/customer.routes';
 import { orderRoutes } from './routes/order.routes';
-import { asaasRoutes } from './routes/asaas.routes';
+
 import { dashboardRoutes } from './routes/dashboard.routes';
 import { checkoutRoutes } from './routes/checkout.routes';
 
@@ -72,11 +72,18 @@ server.register(customerRoutes, { prefix: '/customers' });
 server.register(orderRoutes, { prefix: '/orders' });
 server.register(dashboardRoutes, { prefix: '/dashboard' });
 server.register(checkoutRoutes, { prefix: '/checkout' }); // New public route
-server.register(asaasRoutes); // Root level for webhooks usually, or /api
+
 
 // Health Check
 server.get('/health', async (request, reply) => {
     return { status: 'ok', timestamp: new Date() };
+});
+
+// MaxiPago Health Check - Validates payment gateway credentials
+import { maxiPagoService } from './services/maxipago.service';
+server.get('/health/maxipago', async (request, reply) => {
+    const result = await maxiPagoService.healthCheck();
+    return reply.code(result.success ? 200 : 503).send(result);
 });
 
 // Graceful shutdown

@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { prisma } from '../lib/prisma';
-import { asaasService } from '../services/asaas.service';
+
 import { supabase } from '../lib/supabase';
 import { customerService } from '../services/customer.service';
 

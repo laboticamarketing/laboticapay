@@ -8,26 +8,22 @@ const envSchema = z.object({
     // Server
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     PORT: z.coerce.number().default(4000),
-    
+
     // Database
     DATABASE_URL: z.string().url('DATABASE_URL deve ser uma URL válida'),
-    
+
     // Authentication
     JWT_SECRET: z.string().min(16, 'JWT_SECRET deve ter pelo menos 16 caracteres'),
-    
+
     // CORS
     CORS_ORIGIN: z.string().optional(),
-    
+
     // Supabase
     SUPABASE_URL: z.string().url('SUPABASE_URL deve ser uma URL válida').optional(),
     SUPABASE_KEY: z.string().optional(),
     SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
-    
-    // Asaas Payment Gateway
-    ASAAS_API_KEY: z.string().optional(),
-    ASAAS_API_URL: z.string().url('ASAAS_API_URL deve ser uma URL válida').optional(),
-    ASAAS_WEBHOOK_SECRET: z.string().optional(),
-    
+
+
     // MaxiPago Payment Gateway
     MAXIPAGO_MERCHANT_ID: z.string().optional(),
     MAXIPAGO_MERCHANT_KEY: z.string().optional(),
@@ -43,12 +39,12 @@ type Env = z.infer<typeof envSchema>;
 function validateEnv(): Env {
     try {
         const validated = envSchema.parse(process.env);
-        
+
         // Warning se JWT_SECRET for o valor padrão inseguro (não deve acontecer com validação, mas deixando como safety check)
         if (validated.JWT_SECRET.length < 32 && validated.JWT_SECRET !== 'supersecret_change_me_in_prod') {
             console.warn('⚠️  AVISO: JWT_SECRET deve ter pelo menos 32 caracteres para produção!');
         }
-        
+
         return validated;
     } catch (error) {
         if (error instanceof z.ZodError) {
@@ -87,14 +83,10 @@ export const config = {
         url: env.SUPABASE_URL || '',
         key: env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || '',
     },
-    asaas: {
-        apiKey: env.ASAAS_API_KEY,
-        apiUrl: env.ASAAS_API_URL || 'https://sandbox.asaas.com/api/v3',
-        webhookSecret: env.ASAAS_WEBHOOK_SECRET,
-    },
+
     maxipago: {
-        merchantId: env.MAXIPAGO_MERCHANT_ID || '37570',
-        merchantKey: env.MAXIPAGO_MERCHANT_KEY || 'ek2fmt1bbm7hed84usfsw1pw',
-        apiUrl: env.MAXIPAGO_API_URL || 'https://testapi.maxipago.net/UniversalAPI/postXML',
+        merchantId: env.MAXIPAGO_MERCHANT_ID,
+        merchantKey: env.MAXIPAGO_MERCHANT_KEY,
+        apiUrl: env.MAXIPAGO_API_URL || 'https://api.maxipago.net/UniversalAPI/postXML',
     },
 } as const;

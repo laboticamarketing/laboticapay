@@ -67,6 +67,88 @@ export class MaxiPagoService {
     }
 
     /**
+     * Health Check - Validates credentials by making a minimal API call
+     */
+    async healthCheck(): Promise<{ success: boolean; message: string; details?: any }> {
+        // Check if credentials are configured
+        if (!MERCHANT_ID || !MERCHANT_KEY) {
+            return {
+                success: false,
+                message: 'Credenciais MaxiPago não configuradas. Defina MAXIPAGO_MERCHANT_ID e MAXIPAGO_MERCHANT_KEY.',
+            };
+        }
+
+        try {
+            // Use a report API call to validate credentials without creating a transaction
+            const xmlPayload = `
+<?xml version="1.0" encoding="UTF-8"?>
+<rapi-request>
+    <verification>
+        <merchantId>${MERCHANT_ID}</merchantId>
+        <merchantKey>${MERCHANT_KEY}</merchantKey>
+    </verification>
+    <command>transactionDetailReport</command>
+    <request>
+        <filterOptions>
+            <transactionId>HEALTH_CHECK_TEST</transactionId>
+        </filterOptions>
+    </request>
+</rapi-request>`;
+
+            const reportUrl = API_URL.replace('/UniversalAPI/postXML', '/ReportsAPI/servlet/ReportsAPI');
+
+            const response = await axios.post(reportUrl, xmlPayload, {
+                headers: { 'Content-Type': 'text/xml; charset=utf-8' },
+                timeout: 10000
+            });
+
+            const parsed = this.parser.parse(response.data);
+            const root = parsed['rapi-response'];
+
+            // If we get any response (even "not found"), credentials are valid
+            if (root) {
+                const errorCode = root.errorCode;
+                const errorMsg = root.errorMsg;
+
+                // errorCode 0 = success, 1 = not found (expected for fake ID)
+                if (errorCode === 0 || errorCode === 1 || errorCode === '0' || errorCode === '1') {
+                    return {
+                        success: true,
+                        message: 'Conexão com MaxiPago estabelecida com sucesso!',
+                        details: {
+                            merchantId: MERCHANT_ID,
+                            apiUrl: API_URL,
+                            environment: API_URL.includes('testapi') ? 'SANDBOX' : 'PRODUCTION'
+                        }
+                    };
+                }
+
+                // Invalid credentials or other error
+                return {
+                    success: false,
+                    message: errorMsg || 'Erro de autenticação na MaxiPago',
+                    details: { errorCode, errorMsg }
+                };
+            }
+
+            return {
+                success: false,
+                message: 'Resposta inválida da API MaxiPago'
+            };
+
+        } catch (error: any) {
+            return {
+                success: false,
+                message: `Erro de conexão: ${error.message}`,
+                details: {
+                    apiUrl: API_URL,
+                    error: error.code || error.message
+                }
+            };
+        }
+    }
+
+    /**
      * Core Transaction Logic
      */
     private async sendTransaction(params: any, type: 'PIX' | 'CREDIT_CARD'): Promise<TransactionResponse> {
