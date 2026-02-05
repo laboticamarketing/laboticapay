@@ -5,10 +5,12 @@
 Atualmente, os tipos são definidos separadamente no frontend e backend, causando duplicação e possível dessincronização.
 
 ### Backend
+
 - Tipos gerados pelo Prisma (em `@prisma/client`)
 - Interfaces em controllers/services (TypeScript)
 
 ### Frontend
+
 - `frontend/src/types/order.types.ts`
 - `frontend/src/types/customer.types.ts`
 - `frontend/types.ts` (na raiz - duplicado)
@@ -30,11 +32,13 @@ packages/
 ```
 
 **Prós**:
+
 - Types podem ser importados em ambos os projetos
 - Fonte única de verdade
 - Facilita manutenção
 
 **Contras**:
+
 - Requer setup de monorepo (Turborepo, Nx, Lerna)
 - Mais complexo de configurar
 
@@ -43,10 +47,12 @@ packages/
 Usar ferramentas como `openapi-typescript` ou `graphql-codegen` para gerar tipos do backend.
 
 **Prós**:
+
 - Tipos sempre sincronizados com API
 - Automático
 
 **Contras**:
+
 - Requer documentação OpenAPI/Swagger
 - Tipos podem ser muito verbosos
 
@@ -55,10 +61,12 @@ Usar ferramentas como `openapi-typescript` ou `graphql-codegen` para gerar tipos
 Manter tipos separados mas documentar convenções e manter sincronizados manualmente.
 
 **Prós**:
+
 - Simples, sem overhead
 - Bom para MVP
 
 **Contras**:
+
 - Pode dessincronizar
 - Requer disciplina manual
 
@@ -77,7 +85,7 @@ Manter tipos separados mas documentar convenções e manter sincronizados manual
 
 ## 🔄 Ações Imediatas
 
-1. ✅ Consolidar tipos duplicados no frontend (`types.ts` → `src/types/`)
+1. ✅ Consolidar tipos duplicados no frontend (Removido `types.ts`, centralizado em `src/types/`)
 2. ✅ Documentar convenções
 3. ⏳ Considerar gerar tipos do Prisma para o frontend (futuro)
 4. ⏳ Avaliar monorepo quando projeto crescer
