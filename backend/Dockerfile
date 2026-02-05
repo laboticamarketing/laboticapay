@@ -30,4 +30,4 @@ EXPOSE 4000
 
 # Start command
 # Start command with Migration
-CMD npx prisma migrate deploy && npm start
+CMD npx prisma db push --accept-data-loss && npx prisma db seed && npm start
