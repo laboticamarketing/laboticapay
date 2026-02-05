@@ -85,8 +85,9 @@ export const config = {
     },
 
     maxipago: {
-        merchantId: env.MAXIPAGO_MERCHANT_ID,
-        merchantKey: env.MAXIPAGO_MERCHANT_KEY,
-        apiUrl: env.MAXIPAGO_API_URL || 'https://api.maxipago.net/UniversalAPI/postXML',
-    },
+        merchantId: process.env.MAXIPAGO_MERCHANT_ID,
+        merchantKey: process.env.MAXIPAGO_MERCHANT_KEY,
+        apiUrl: process.env.MAXIPAGO_API_URL || 'https://api.maxipago.net/UniversalAPI/postXML',
+        processorId: process.env.MAXIPAGO_PROCESSOR_ID || '1' // Default to 1 (Simulator)
+    }
 } as const;

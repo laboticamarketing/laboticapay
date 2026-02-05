@@ -193,7 +193,7 @@ export class MaxiPagoService {
     </verification>
     <order>
         <sale>
-            <processorID>1</processorID>
+            <processorID>${config.maxipago.processorId}</processorID>
             <referenceNum>${params.reference}</referenceNum>
             <fraudCheck>N</fraudCheck>
             ${customerBlock}
@@ -220,14 +220,25 @@ export class MaxiPagoService {
                 headers: { 'Content-Type': 'text/xml; charset=utf-8' }
             });
 
-            console.log('MaxiPago Response Raw:', response.data);
+            console.log('MaxiPago Response Status:', response.status);
+            // Log full response for debugging
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('MaxiPago Response Raw:', response.data);
+            } else {
+                // In production, log only if error or basic info to avoid leaks? 
+                // Actually, for this payment gateway integration debugging, we need raw response often.
+                // Masking might be needed but for now logging raw to debug "Not Authorized".
+                console.log('MaxiPago Response Raw:', response.data);
+            }
+
 
             return this.parseResponse(response.data, type);
 
         } catch (error: any) {
             console.error('MaxiPago Service Error:', error.message);
             if (error.response) {
-                console.error('MaxiPago API Response:', error.response.data);
+                console.error('MaxiPago API Error Status:', error.response.status);
+                console.error('MaxiPago API Error Data:', error.response.data);
             }
             return { success: false, message: error.message };
         }
