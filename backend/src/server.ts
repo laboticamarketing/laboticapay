@@ -106,8 +106,9 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 // Run the server
 const start = async () => {
     try {
-        await server.listen({ port: config.server.port, host: '0.0.0.0' });
-        console.log(`Server is running at http://localhost:${config.server.port}`);
+        const host = config.server.nodeEnv === 'production' ? '0.0.0.0' : 'localhost';
+        await server.listen({ port: config.server.port, host });
+        console.log(`Server is running at http://${host}:${config.server.port}`);
         console.log(`Environment: ${config.server.nodeEnv}`);
     } catch (err) {
         server.log.error(err as any);

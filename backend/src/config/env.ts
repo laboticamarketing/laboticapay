@@ -77,7 +77,7 @@ export const config = {
         jwtSecret: env.JWT_SECRET,
     },
     cors: {
-        origin: env.CORS_ORIGIN ? env.CORS_ORIGIN.split(',') : true,
+        origin: env.CORS_ORIGIN === '*' ? true : (env.CORS_ORIGIN ? env.CORS_ORIGIN.split(',') : true),
     },
     supabase: {
         url: env.SUPABASE_URL || '',
