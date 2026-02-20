@@ -6,6 +6,7 @@ import { config } from '../config/env';
 const MERCHANT_ID = config.maxipago.merchantId;
 const MERCHANT_KEY = config.maxipago.merchantKey;
 const API_URL = config.maxipago.apiUrl;
+const PROCESSOR_ID = config.maxipago.processorId;
 
 /**
  * Interfaces
@@ -80,9 +81,7 @@ export class MaxiPagoService {
 
         try {
             // Use a report API call to validate credentials without creating a transaction
-            const xmlPayload = `
-<?xml version="1.0" encoding="UTF-8"?>
-<rapi-request>
+            const xmlPayload = `<rapi-request>
     <verification>
         <merchantId>${MERCHANT_ID}</merchantId>
         <merchantKey>${MERCHANT_KEY}</merchantKey>
@@ -99,7 +98,8 @@ export class MaxiPagoService {
 
             const response = await axios.post(reportUrl, xmlPayload, {
                 headers: { 'Content-Type': 'text/xml; charset=utf-8' },
-                timeout: 10000
+                timeout: 10000,
+                validateStatus: () => true // Accept any status code to parse the XML body
             });
 
             const parsed = this.parser.parse(response.data);
@@ -107,11 +107,13 @@ export class MaxiPagoService {
 
             // If we get any response (even "not found"), credentials are valid
             if (root) {
-                const errorCode = root.errorCode;
-                const errorMsg = root.errorMsg;
+                // MaxiPago wraps report responses in <header>
+                const header = root.header || root;
+                const errorCode = header.errorCode;
+                const errorMsg = header.errorMsg;
 
-                // errorCode 0 = success, 1 = not found (expected for fake ID)
-                if (errorCode === 0 || errorCode === 1 || errorCode === '0' || errorCode === '1') {
+                // errorCode 0 = success, 1 = not found (expected for fake ID) or account issue
+                if (errorCode === 0 || errorCode === '0') {
                     return {
                         success: true,
                         message: 'Conexão com MaxiPago estabelecida com sucesso!',
@@ -123,7 +125,24 @@ export class MaxiPagoService {
                     };
                 }
 
-                // Invalid credentials or other error
+                if (errorCode === 1 || errorCode === '1') {
+                    // errorCode 1 can mean "not found" (OK) or "account not open"
+                    const isAccountIssue = typeof errorMsg === 'string' && errorMsg.toLowerCase().includes('not open');
+                    return {
+                        success: !isAccountIssue,
+                        message: isAccountIssue
+                            ? `Conta MaxiPago não está ativa: ${errorMsg}`
+                            : 'Conexão com MaxiPago estabelecida com sucesso!',
+                        details: {
+                            merchantId: MERCHANT_ID,
+                            apiUrl: API_URL,
+                            environment: API_URL.includes('testapi') ? 'SANDBOX' : 'PRODUCTION',
+                            ...(isAccountIssue ? { errorCode, errorMsg } : {})
+                        }
+                    };
+                }
+
+                // Other error codes = invalid credentials or other error
                 return {
                     success: false,
                     message: errorMsg || 'Erro de autenticação na MaxiPago',
@@ -193,7 +212,7 @@ export class MaxiPagoService {
     </verification>
     <order>
         <sale>
-            <processorID>${config.maxipago.processorId}</processorID>
+            <processorID>${PROCESSOR_ID}</processorID>
             <referenceNum>${params.reference}</referenceNum>
             <fraudCheck>N</fraudCheck>
             ${customerBlock}
@@ -214,31 +233,22 @@ export class MaxiPagoService {
     </order>
 </transaction-request>`;
 
-            console.log('MaxiPago Request:', xmlPayload);
+            console.error('[MaxiPago] Request Payload:', xmlPayload);
 
             const response = await axios.post(API_URL, xmlPayload, {
                 headers: { 'Content-Type': 'text/xml; charset=utf-8' }
             });
 
-            console.log('MaxiPago Response Status:', response.status);
-            // Log full response for debugging
-            if (process.env.NODE_ENV !== 'production') {
-                console.log('MaxiPago Response Raw:', response.data);
-            } else {
-                // In production, log only if error or basic info to avoid leaks? 
-                // Actually, for this payment gateway integration debugging, we need raw response often.
-                // Masking might be needed but for now logging raw to debug "Not Authorized".
-                console.log('MaxiPago Response Raw:', response.data);
-            }
+            console.error('[MaxiPago] Response Status:', response.status);
+            console.error('[MaxiPago] Response Data:', JSON.stringify(response.data));
 
 
             return this.parseResponse(response.data, type);
 
         } catch (error: any) {
-            console.error('MaxiPago Service Error:', error.message);
+            console.error('[MaxiPago] Service Fatal Error:', error.message);
             if (error.response) {
-                console.error('MaxiPago API Error Status:', error.response.status);
-                console.error('MaxiPago API Error Data:', error.response.data);
+                console.error('[MaxiPago] API Error Data:', error.response.data);
             }
             return { success: false, message: error.message };
         }
@@ -252,11 +262,17 @@ export class MaxiPagoService {
         const root = parsed['transaction-response'];
 
         if (!root) {
-            return { success: false, message: 'Invalid XML Response' };
+            console.error('[MaxiPago] Invalid XML received');
+            return { success: false, message: 'Invalid XML Response from Gateway' };
         }
 
         if (root.responseCode && root.responseCode != 0) {
-            return { success: false, message: root.responseMessage || 'Transaction Failed' };
+            console.error(`[MaxiPago] Transaction Failed. Code: ${root.responseCode}, Message: ${root.responseMessage}`);
+            return {
+                success: false,
+                message: `Pagamento Recusado: ${root.responseMessage} (Code: ${root.responseCode})`,
+                returnCode: String(root.responseCode)
+            };
         }
 
         const result: TransactionResponse = {
