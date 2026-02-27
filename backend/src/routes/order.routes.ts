@@ -1,14 +1,18 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import * as orderController from '../controllers/order.controller';
-import { requireAuth } from '../lib/middleware/auth.middleware';
+import { requireAuth, requireRole } from '../lib/middleware/auth.middleware';
 
 export async function orderRoutes(fastify: FastifyInstance) {
     // Protected routes - ensure JWT verification
     fastify.addHook('onRequest', requireAuth);
 
     fastify.post('/', orderController.createOrder);
-    fastify.get('/stats', orderController.getOrderStats);
+
+    // Estatísticas de pedidos – apenas MANAGER e ADMIN
+    fastify.get('/stats', {
+        onRequest: requireRole('MANAGER', 'ADMIN')
+    }, orderController.getOrderStats);
 
     // List Orders with Search Schema
     fastify.get('/', {
@@ -22,6 +26,13 @@ export async function orderRoutes(fastify: FastifyInstance) {
         }
     }, orderController.listOrders);
 
+    // Exportação de pedidos – apenas MANAGER e ADMIN (ATTENDANT não exporta mais)
+    fastify.get('/export', {
+        onRequest: requireRole('MANAGER', 'ADMIN')
+    }, orderController.exportOrdersCsv);
+
     fastify.get('/:id', orderController.getOrderDetails);
     fastify.post('/:id/notes', orderController.addOrderNote);
+    fastify.patch('/:id/cancel', orderController.cancelOrder);
 }
+

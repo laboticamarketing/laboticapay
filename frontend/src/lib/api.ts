@@ -1,10 +1,10 @@
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3333' : 'https://api.laboticamanipulacao.com');
+
 export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://api.laboticamanipulacao.com'),
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    baseURL: API_URL,
+    headers: { 'Content-Type': 'application/json' },
 });
 
 api.interceptors.request.use((config) => {
@@ -21,9 +21,8 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            // Check if we are not already on the login page to avoid loops (though window.location avoids react router loops usually)
-            if (!window.location.hash.includes('/login')) {
-                window.location.href = '/#/login';
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
             }
         }
         return Promise.reject(error);

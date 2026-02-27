@@ -1,112 +1,77 @@
-import React, { useState, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { Layout } from './components/Layout';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
-// Lazy Load Pages
-const Dashboard = React.lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
-const ManagerDashboard = React.lazy(() => import('./pages/ManagerDashboard').then(module => ({ default: module.ManagerDashboard })));
-const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
-const AdminUsers = React.lazy(() => import('./pages/AdminUsers').then(module => ({ default: module.AdminUsers })));
-const AdminSettings = React.lazy(() => import('./pages/AdminSettings').then(module => ({ default: module.AdminSettings })));
-const AdminLogs = React.lazy(() => import('./pages/AdminLogs').then(module => ({ default: module.AdminLogs })));
-const NewLink = React.lazy(() => import('./pages/NewLink').then(module => ({ default: module.NewLink })));
-const Links = React.lazy(() => import('./pages/Links').then(module => ({ default: module.Links })));
-const Profile = React.lazy(() => import('./pages/Profile').then(module => ({ default: module.Profile })));
-const Login = React.lazy(() => import('./pages/Login').then(module => ({ default: module.Login })));
-const Checkout = React.lazy(() => import('./pages/Checkout').then(module => ({ default: module.Checkout })));
-const CustomerProfile = React.lazy(() => import('./pages/CustomerProfile').then(module => ({ default: module.CustomerProfile })));
-const Customers = React.lazy(() => import('./pages/Customers').then(module => ({ default: module.Customers })));
-const CustomerEdit = React.lazy(() => import('./pages/CustomerEdit').then(module => ({ default: module.CustomerEdit })));
-const Team = React.lazy(() => import('./pages/Team').then(module => ({ default: module.Team })));
-const Reports = React.lazy(() => import('./pages/Reports').then(module => ({ default: module.Reports })));
+// Lazy imports for code splitting
+import { lazy, Suspense } from 'react';
+const LoginPage = lazy(() => import('@/pages/LoginPage'));
+const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
+const CustomersPage = lazy(() => import('@/pages/CustomersPage'));
+const CustomerDetailPage = lazy(() => import('@/pages/CustomerDetailPage'));
 
-// Loading Component
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-900">
-    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-  </div>
-);
+const PaymentLinksPage = lazy(() => import('@/pages/PaymentLinksPage'));
+const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
+const NewLinkPage = lazy(() => import('@/pages/NewLinkPage'));
+const CheckoutPage = lazy(() => import('@/pages/CheckoutPage'));
 
-function App() {
-  const [role, setRole] = useState<'attendant' | 'manager' | 'admin'>('attendant');
-
-  /*
-  const getDashboardByRole = () => {
-    switch (role) {
-      case 'admin':
-        return <AdminDashboard />;
-      case 'manager':
-        return <ManagerDashboard />;
-      default:
-        return <Dashboard />;
-    }
-  };
-  */
-
+function Loading() {
   return (
-    <BrowserRouter>
-      <Toaster position="top-center" toastOptions={{
-        style: {
-          background: '#333',
-          color: '#fff',
-        },
-        success: {
-          style: {
-            background: '#22c55e',
-          },
-        },
-        error: {
-          style: {
-            background: '#ef4444',
-          },
-        },
-      }} />
-      <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-
-          {/* Checkout Flow (Public facing but separate layout) */}
-          <Route path="/checkout/:orderId/*" element={<Checkout />} />
-
-          {/* Protected Dashboard Routes */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Layout role={role} setRole={setRole} />
-            </ProtectedRoute>
-          }>
-            {/* Conditional Home Route based on Role */}
-            {/* MVP: Always show Dashboard (Attendant) */}
-            <Route index element={<Dashboard />} />
-
-            <Route path="new-link" element={<NewLink />} />
-            <Route path="links" element={<Links />} />
-            <Route path="customers" element={<Customers />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="customer-profile/:id" element={<CustomerProfile />} />
-            <Route path="customer-edit/:id?" element={<CustomerEdit />} />
-
-            {/* Manager Specific Routes (Disabled for MVP) */}
-            {/* <Route path="team" element={<Team />} /> */}
-            {/* <Route path="reports" element={<Reports />} /> */}
-
-            {/* Admin Specific Routes (Disabled for MVP) */}
-            {/* <Route path="users" element={<AdminUsers />} /> */}
-            {/* <Route path="system-settings" element={<AdminSettings />} /> */}
-            {/* <Route path="audit-logs" element={<AdminLogs />} /> */}
-            {/* <Route path="financial-reports" element={<div className="p-8 text-slate-900 dark:text-white">Relatórios Financeiros Avançados</div>} /> */}
-
-            {/* <Route path="settings" element={<div className="p-8 text-slate-900 dark:text-white">Configurações Gerais</div>} /> */}
-          </Route>
-
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-10 h-10 rounded-lg bg-primary-500 animate-pulse" />
+    </div>
   );
 }
 
-export default App;
+function ProtectedRoute() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return <Loading />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  return <Outlet />;
+}
+
+function PublicOnlyRoute() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return <Loading />;
+  if (isAuthenticated) return <Navigate to="/admin" replace />;
+
+  return <Outlet />;
+}
+
+export default function App() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <Routes>
+        {/* Public routes */}
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/login" element={<LoginPage />} />
+        </Route>
+
+        {/* Public checkout — no auth required */}
+        <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+        <Route path="/checkout/:orderId/success" element={<CheckoutPage />} />
+
+        {/* Protected admin routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="new-link" element={<NewLinkPage />} />
+            <Route path="orders" element={<PaymentLinksPage />} />
+            <Route path="customers" element={<CustomersPage />} />
+            <Route path="customers/:id" element={<CustomerDetailPage />} />
+            <Route path="profile" element={<SettingsPage />} />
+            {/* Redirects for backward compatibility */}
+            <Route path="links" element={<Navigate to="/admin/orders" replace />} />
+            <Route path="settings" element={<Navigate to="/admin/profile" replace />} />
+          </Route>
+        </Route>
+
+        {/* Redirect root to admin */}
+        <Route path="/" element={<Navigate to="/admin" replace />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    </Suspense>
+  );
+}

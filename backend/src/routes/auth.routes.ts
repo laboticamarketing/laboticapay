@@ -9,5 +9,4 @@ export async function authRoutes(fastify: FastifyInstance) {
     fastify.get('/me', { onRequest: requireAuth }, authController.getMe);
     fastify.put('/me', { onRequest: requireAuth }, authController.updateMe as any);
     fastify.post('/me/avatar', { onRequest: requireAuth }, authController.uploadAvatar);
-    fastify.post('/me/revoke-sessions', { onRequest: requireAuth }, authController.revokeSessions);
 }

@@ -23,11 +23,15 @@ const envSchema = z.object({
     SUPABASE_ANON_KEY: z.string(),
     SUPABASE_SERVICE_ROLE_KEY: z.string(),
 
-    // Maxipago
-    MAXIPAGO_MERCHANT_ID: z.string().min(1),
-    MAXIPAGO_MERCHANT_KEY: z.string().min(1),
-    MAXIPAGO_API_URL: z.string().url().default('https://api.maxipago.net/UniversalAPI/postXML'),
-    MAXIPAGO_PROCESSOR_ID: z.string().default('1'),
+    // AbacatePay
+    ABACATEPAY_API_KEY: z.string().min(1),
+    ABACATEPAY_API_URL: z.string().url().default('https://api.abacatepay.com'),
+    ABACATEPAY_WEBHOOK_SECRET: z.string().optional(),
+
+    // Melhor Envio
+    MELHORENVIO_TOKEN: z.string().min(1),
+    MELHORENVIO_URL: z.string().url().default('https://sandbox.melhorenvio.com.br/api/v2'),
+    STORE_ZIP_CODE: z.string().min(8),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -40,7 +44,6 @@ function validateEnv(): Env {
     try {
         const validated = envSchema.parse(process.env);
 
-        // Warning se JWT_SECRET for o valor padrão inseguro (não deve acontecer com validação, mas deixando como safety check)
         if (validated.JWT_SECRET.length < 32 && validated.JWT_SECRET !== 'supersecret_change_me_in_prod') {
             console.warn('⚠️  AVISO: JWT_SECRET deve ter pelo menos 32 caracteres para produção!');
         }
@@ -84,11 +87,9 @@ export const config = {
         key: env.SUPABASE_SERVICE_ROLE_KEY || '',
         anonKey: env.SUPABASE_ANON_KEY || ''
     },
-
-    maxipago: {
-        merchantId: env.MAXIPAGO_MERCHANT_ID,
-        merchantKey: env.MAXIPAGO_MERCHANT_KEY,
-        apiUrl: env.MAXIPAGO_API_URL,
-        processorId: env.MAXIPAGO_PROCESSOR_ID
+    abacatepay: {
+        apiKey: env.ABACATEPAY_API_KEY,
+        apiUrl: env.ABACATEPAY_API_URL,
+        webhookSecret: env.ABACATEPAY_WEBHOOK_SECRET || '',
     }
 } as const;

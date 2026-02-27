@@ -1,4 +1,5 @@
 import { api } from '../lib/api';
+import { unmask } from '../lib/validation';
 
 export interface LoginResponse {
     message: string;
@@ -24,7 +25,11 @@ export const authService = {
     },
 
     async updateProfile(data: { name?: string; phone?: string; currentPassword?: string; newPassword?: string }) {
-        const response = await api.put('/auth/me', data);
+        const cleanData = {
+            ...data,
+            phone: data.phone ? unmask(data.phone) : undefined
+        };
+        const response = await api.put('/auth/me', cleanData);
         return response.data;
     },
 
@@ -36,10 +41,5 @@ export const authService = {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         return response.data;
-    },
-
-    async revokeSessions() {
-        const { data } = await api.post<{ message: string; token: string }>('/auth/me/revoke-sessions');
-        return data; // Returns { message, token }
     }
 };

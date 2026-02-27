@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma';
 
 import { supabase } from '../lib/supabase';
 import { customerService } from '../services/customer.service';
+import { deleteCheckoutAddressService } from '../services/checkoutAddress.service';
 
 // Types for the request body
 interface CreateOrderBody {
@@ -173,10 +174,6 @@ export const listOrders = async (request: FastifyRequest<{ Querystring: { page?:
             ];
         }
 
-        // DEBUG SEARCH
-        // DEBUG SEARCH
-        console.log('DEBUG SEARCH PARAMS:', { search, status, whereClause: JSON.stringify(whereClause, null, 2) });
-
         const [orders, total] = await Promise.all([
             prisma.order.findMany({
                 skip,
@@ -220,6 +217,8 @@ export const listOrders = async (request: FastifyRequest<{ Querystring: { page?:
  */
 export const getOrderDetails = async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const { id } = request.params;
+    const user = request.user as { id: string; role: string } | undefined;
+
     try {
         const order = await prisma.order.findUnique({
             where: { id },
@@ -247,6 +246,15 @@ export const getOrderDetails = async (request: FastifyRequest<{ Params: { id: st
 
         if (!order) {
             return reply.status(404).send({ error: 'Order not found' });
+        }
+
+        // Regra de privacidade adicional:
+        // Atendentes só podem visualizar detalhes de pedidos que eles mesmos criaram.
+        if (user && user.role === 'ATTENDANT' && order.userId !== user.id) {
+            return reply.status(403).send({
+                error: 'Forbidden',
+                message: 'Você não tem permissão para visualizar este pedido.'
+            });
         }
 
         reply.send(order);
@@ -558,37 +566,106 @@ export const getOrderStats = async (request: FastifyRequest, reply: FastifyReply
 };
 
 export const deleteCheckoutAddress = async (request: FastifyRequest<{ Params: { id: string, addressId: string } }>, reply: FastifyReply) => {
-    const { id, addressId } = request.params;
+    return deleteCheckoutAddressService(request, reply);
+};
+
+export const cancelOrder = async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    const { id } = request.params;
+    const user = request.user as { id: string; role: string } | undefined;
 
     try {
         const order = await prisma.order.findUnique({
             where: { id },
-            select: { customerId: true, addressId: true, status: true }
+            include: { paymentLink: true }
         });
 
-        if (!order) return reply.status(404).send({ error: 'Order not found' });
-        if (order.status !== 'PENDING') return reply.status(400).send({ error: 'Cannot delete address from processed order' });
+        if (!order) return reply.status(404).send({ error: 'Pedido não encontrado.' });
 
-        const address = await prisma.address.findFirst({
-            where: { id: addressId, customerId: order.customerId }
-        });
-
-        if (!address) return reply.status(404).send({ error: 'Address not found for this customer' });
-
-        if (order.addressId === addressId) {
-            await prisma.order.update({
-                where: { id },
-                data: { addressId: null }
+        // Atendentes só podem cancelar pedidos que eles mesmos criaram.
+        if (user && user.role === 'ATTENDANT' && order.userId !== user.id) {
+            return reply.status(403).send({
+                error: 'Forbidden',
+                message: 'Você não tem permissão para cancelar este pedido.'
             });
         }
 
-        await prisma.address.delete({
-            where: { id: addressId }
-        });
+        if (order.status === 'PAID') return reply.status(400).send({ error: 'Pedido já foi pago e não pode ser cancelado.' });
+        if (order.status === 'CANCELED') return reply.status(400).send({ error: 'Pedido já está cancelado.' });
 
-        return reply.send({ success: true });
+        await prisma.$transaction([
+            prisma.order.update({
+                where: { id },
+                data: { status: 'CANCELED' }
+            }),
+            ...(order.paymentLink ? [
+                prisma.paymentLink.update({
+                    where: { id: order.paymentLink.id },
+                    data: { status: 'CANCELED' }
+                })
+            ] : [])
+        ]);
+
+        reply.send({ success: true, message: 'Pedido cancelado com sucesso.' });
     } catch (error) {
         request.log.error(error);
-        return reply.status(500).send({ error: 'Failed to delete address' });
+        reply.status(500).send({ error: 'Erro ao cancelar pedido.' });
     }
 };
+
+export const exportOrdersCsv = async (request: FastifyRequest<{ Querystring: { status?: string; startDate?: string; endDate?: string } }>, reply: FastifyReply) => {
+    const { status, startDate, endDate } = request.query;
+    const user = request.user as { id: string; role: string };
+
+    try {
+        const whereClause: any = {};
+
+        if (user.role === 'ATTENDANT') {
+            whereClause.userId = user.id;
+        }
+
+        if (status) whereClause.status = status;
+
+        if (startDate || endDate) {
+            whereClause.createdAt = {};
+            if (startDate) whereClause.createdAt.gte = new Date(startDate);
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                whereClause.createdAt.lte = end;
+            }
+        }
+
+        const orders = await prisma.order.findMany({
+            where: whereClause,
+            include: {
+                customer: true,
+                items: true,
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        const BOM = '\uFEFF';
+        const header = 'ID,Cliente,CPF,Telefone,Itens,Valor Total,Frete,Status,Data Criação\n';
+        const rows = orders.map(o => {
+            const name = o.customer?.name?.replace(/"/g, '""') || 'Anônimo';
+            const cpf = o.customer?.cpf || '-';
+            const phone = o.customer?.phone || '-';
+            const itemNames = (o.items || []).map((it: any) => it.name).join('; ').replace(/"/g, '""');
+            const total = Number(o.totalValue || 0).toFixed(2);
+            const shipping = Number(o.shippingValue || 0).toFixed(2);
+            const date = new Date(o.createdAt).toLocaleDateString('pt-BR');
+            return `"${o.id}","${name}","${cpf}","${phone}","${itemNames}",${total},${shipping},${o.status},"${date}"`;
+        }).join('\n');
+
+        const csv = BOM + header + rows;
+
+        reply.header('Content-Type', 'text/csv; charset=utf-8');
+        reply.header('Content-Disposition', `attachment; filename="pedidos_${new Date().toISOString().slice(0, 10)}.csv"`);
+        reply.send(csv);
+    } catch (error) {
+        request.log.error(error);
+        reply.status(500).send({ error: 'Erro ao exportar pedidos.' });
+    }
+};
+
+

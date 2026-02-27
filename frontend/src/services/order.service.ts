@@ -10,8 +10,16 @@ export const orderService = {
         return api.get<OrderListResponse>('/orders', { params }).then(res => res.data);
     },
 
+    async getDetails(orderId: string) {
+        return api.get<Order>(`/orders/${orderId}`).then(res => res.data);
+    },
+
     async addNote(orderId: string, content: string) {
         return api.post(`/orders/${orderId}/notes`, { content });
+    },
+
+    async cancel(orderId: string) {
+        return api.patch(`/orders/${orderId}/cancel`).then(res => res.data);
     },
 
     async getStats() {

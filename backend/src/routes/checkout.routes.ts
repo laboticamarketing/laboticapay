@@ -4,6 +4,10 @@ import * as orderController from '../controllers/order.controller';
 
 export async function checkoutRoutes(fastify: FastifyInstance) {
     // Public routes - No JWT required
+    fastify.get('/shipping-quote', checkoutController.getShippingQuote);
+
+    // CPF Lookup — returning customers skip to confirmation
+    fastify.get('/lookup-cpf', checkoutController.lookupByCpf);
 
     // Save Progress (Partial)
     fastify.post('/:id', checkoutController.saveProgress);

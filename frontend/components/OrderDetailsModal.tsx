@@ -346,7 +346,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, on
                         ) : (
                           <div className="flex items-center gap-2">
                             <span className="material-symbols-outlined text-slate-400 text-[18px]">payments</span>
-                            <span>Link de Pagamento (Asaas)</span>
+                            <span>Pix ou Cartão</span>
                           </div>
                         )}
                       </div>

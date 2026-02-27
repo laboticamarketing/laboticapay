@@ -23,7 +23,6 @@
     "@fastify/static": "^9.0.0",
     "@prisma/client": "^5.7.0",
     "@supabase/supabase-js": "^2.89.0",
-    "@types/bcryptjs": "^2.4.6",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "date-fns": "^4.1.0",
@@ -39,7 +38,6 @@
     "nodemon": "^3.0.2",
     "prisma": "^5.7.0",
     "ts-node": "^10.9.2",
-    "tsx": "^4.21.0",
     "typescript": "^5.3.3"
   },
   "prisma": {

@@ -1,0 +1,13 @@
+{
+  "plugins": {
+    "supabase": {
+      "enabled": true
+    },
+    "context7-plugin": {
+      "enabled": true
+    },
+    "prisma": {
+      "enabled": true
+    }
+  }
+}

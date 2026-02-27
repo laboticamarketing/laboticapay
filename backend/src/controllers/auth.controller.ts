@@ -170,32 +170,3 @@ export const uploadAvatar = async (request: FastifyRequest, reply: FastifyReply)
         reply.status(500).send({ message: 'Failed to upload avatar' });
     }
 };
-
-export const revokeSessions = async (request: FastifyRequest, reply: FastifyReply) => {
-    const user = request.user as { id: string };
-
-    try {
-        // Increment token version to invalidate all OLD tokens
-        const updated = await prisma.profile.update({
-            where: { id: user.id },
-            data: { tokenVersion: { increment: 1 } }
-        });
-
-        // Generate a NEW token for THIS session so the user doesn't get logged out
-        const newToken = await reply.jwtSign({
-            id: updated.id,
-            email: updated.email,
-            role: updated.role,
-            version: updated.tokenVersion
-        });
-
-        return reply.send({
-            message: 'Todas as outras sessões foram desconectadas.',
-            token: newToken
-        });
-
-    } catch (error) {
-        request.log.error(error);
-        return reply.status(500).send({ message: 'Failed to revoke sessions' });
-    }
-};

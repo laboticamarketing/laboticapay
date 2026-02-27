@@ -49,17 +49,56 @@ export const maskDate = (value: string) => {
 };
 
 export const maskRG = (value: string) => {
-    return value
-        .replace(/\D/g, '')
+    let raw = value.replace(/\D/g, '');
+    if (raw.length > 10) raw = raw.slice(0, 10);
+    return raw
         .replace(/(\d{2})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d{1})/, '$1-$2');
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
 };
 
 export const maskPhone = (v: string) => {
     return v
         .replace(/\D/g, '')
         .replace(/(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{5})(\d)/, '$1-$2')
-        .replace(/(-\d{4})\d+?$/, '$1');
+        .replace(/(\d{4,5})(\d{4})$/, '$1-$2'); // Handles 8 or 9 digit phones accurately
+};
+
+export const unmask = (value?: string | null): string => {
+    if (!value) return '';
+    return value.replace(/\D/g, '');
+};
+
+export function validatePasswordStrength(password: string): { score: number; feedback: string[] } {
+    let score = 0;
+    const feedback: string[] = [];
+    if (password.length >= 8) score++;
+    else feedback.push('A senha deve ter pelo menos 8 caracteres');
+    if (/[A-Z]/.test(password)) score++;
+    else feedback.push('Inclua pelo menos uma letra maiúscula');
+    if (/[a-z]/.test(password)) score++;
+    else feedback.push('Inclua pelo menos uma letra minúscula');
+    if (/[0-9]/.test(password)) score++;
+    else feedback.push('Inclua pelo menos um número');
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    else feedback.push('Inclua pelo menos um caractere especial (!@#$%^&*)');
+    return { score, feedback };
+}
+
+export function maskCEP(value: string) {
+    const v = value.replace(/\D/g, '');
+    return v.replace(/^(\d{5})(\d)/, '$1-$2');
+}
+
+export const validatePhone = (phone?: string | null): boolean => {
+    if (!phone) return false;
+    const cleanPhone = unmask(phone);
+    // Needs DDD (2 digits) + 8 digits (fixed line) OR 9 digits (mobile starting with 9)
+    if (cleanPhone.length !== 10 && cleanPhone.length !== 11) return false;
+
+    // Additional check if it's 11 digits it must start with 9 after DDD
+    if (cleanPhone.length === 11) {
+        if (cleanPhone[2] !== '9') return false; // The 3rd digit (1st of the actual number) must be 9
+    }
+    return true;
 };

@@ -9,9 +9,14 @@ export interface DashboardStats {
     chartData: { name: string; value: number }[];
 }
 
+export interface DashboardParams {
+    startDate?: string;
+    endDate?: string;
+}
+
 export const dashboardService = {
-    async getStats() {
-        const response = await api.get<DashboardStats>('/dashboard/stats');
+    async getStats(params?: DashboardParams) {
+        const response = await api.get<DashboardStats>('/dashboard/stats', { params });
         return response.data;
     }
 };

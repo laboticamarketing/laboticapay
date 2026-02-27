@@ -1,33 +1,15 @@
-export interface Address {
-    id?: string;
-    type: string;
-    zip: string;
-    street: string;
-    number: string;
-    neighborhood: string;
-    city: string;
-    state: string;
-    complement?: string;
-    isPrimary?: boolean;
-}
+import type {
+    Address as BackendAddress,
+    Customer as BackendCustomer,
+    CustomerNote as BackendCustomerNote,
+} from '../../backend/src/types/contracts';
+import type { Order } from './order.types';
 
-export interface Customer {
-    id: string;
-    name: string;
-    email: string | null;
-    phone: string;
-    cpf: string | null;
-    birthDate: string | null;
-    addresses?: Address[];
-    notes?: string | null;
-    asaasId: string | null;
-    createdAt: string;
-    // New fields
-    createdBy?: {
-        id: string;
-        name: string;
-    };
-    createdById?: string;
+export type Address = BackendAddress;
+export type CustomerNote = BackendCustomerNote;
+
+export interface Customer extends BackendCustomer {
+    orders?: Order[];
 }
 
 export interface CustomerListResponse {

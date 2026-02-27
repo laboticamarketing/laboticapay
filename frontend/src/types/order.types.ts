@@ -1,35 +1,28 @@
-import { Customer } from './customer.types';
+import type {
+    Order as BackendOrder,
+    OrderItem as BackendOrderItem,
+    OrderNote as BackendOrderNote,
+    OrderStatus as BackendOrderStatus,
+    ShippingType as BackendShippingType,
+    PaymentTransaction as BackendOrderTransaction,
+    Address as BackendOrderAddress,
+} from '../../backend/src/types/contracts';
+import type { Customer } from './customer.types';
 
-export type ShippingType = 'DYNAMIC' | 'FIXED' | 'FREE';
-export type OrderStatus = 'PENDING' | 'PAID' | 'CANCELED' | 'EXPIRED';
+export type ShippingType = BackendShippingType;
+export type OrderStatus = BackendOrderStatus;
 
-export interface OrderItem {
-    id: string;
-    name: string;
-    dosage?: string;
-    actives?: string; // Stored as JSON string in DB, usually parsed in frontend if needed
-}
+export type OrderItem = BackendOrderItem;
+export type OrderAddress = BackendOrderAddress;
+export type OrderNote = BackendOrderNote;
+export type OrderTransaction = BackendOrderTransaction;
 
-export interface Order {
-    id: string;
-    totalValue: number;
-    shippingValue?: number;
-    shippingType: ShippingType;
-    status: OrderStatus;
-
-    customerId: string;
+export interface Order extends Omit<BackendOrder, 'customer' | 'items' | 'address' | 'notes' | 'transactions'> {
     customer?: Customer;
-
     items: OrderItem[];
-
-    paymentLink?: {
-        id: string;
-        asaasUrl: string;
-        status: string;
-    };
-
-    createdAt: string;
-    updatedAt: string;
+    address?: OrderAddress;
+    notes?: OrderNote[];
+    transactions?: OrderTransaction[];
 }
 
 export interface CreateOrderDTO {
@@ -49,6 +42,7 @@ export interface CreateOrderDTO {
         name: string;
         dosage?: string;
         actives?: string[];
+        price?: number;
     }>;
     internalNotes?: string;
 }
