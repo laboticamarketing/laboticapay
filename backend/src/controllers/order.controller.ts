@@ -612,8 +612,12 @@ export const cancelOrder = async (request: FastifyRequest<{ Params: { id: string
     }
 };
 
-export const exportOrdersCsv = async (request: FastifyRequest<{ Querystring: { status?: string; startDate?: string; endDate?: string } }>, reply: FastifyReply) => {
-    const { status, startDate, endDate } = request.query;
+export const exportOrdersCsv = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { status, startDate, endDate } = request.query as {
+        status?: string;
+        startDate?: string;
+        endDate?: string;
+    };
     const user = request.user as { id: string; role: string };
 
     try {
