@@ -69,6 +69,29 @@ export const unmask = (value?: string | null): string => {
     return value.replace(/\D/g, '');
 };
 
+/** Mantém apenas dígitos (ex.: número da casa). */
+export const maskOnlyDigits = (value: string, maxLength?: number): string => {
+    let digits = value.replace(/\D/g, '');
+    if (maxLength != null && digits.length > maxLength) digits = digits.slice(0, maxLength);
+    return digits;
+};
+
+/** Retorna telefone no padrão internacional (E.164 Brasil: 55 + DDD + número, só dígitos). */
+export const toInternationalPhone = (phone?: string | null): string => {
+    const raw = unmask(phone);
+    if (!raw) return '';
+    if (raw.length === 10 || raw.length === 11) return '55' + raw;
+    return raw;
+};
+
+/** Formata telefone internacional (ex.: 5511999999999) para exibição (ex.: (11) 99999-9999). */
+export const formatPhoneForDisplay = (phone?: string | null): string => {
+    const raw = unmask(phone);
+    if (!raw) return '';
+    const local = raw.length >= 12 && raw.startsWith('55') ? raw.slice(2) : raw;
+    return maskPhone(local);
+};
+
 export function validatePasswordStrength(password: string): { score: number; feedback: string[] } {
     let score = 0;
     const feedback: string[] = [];

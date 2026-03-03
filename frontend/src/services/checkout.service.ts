@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { unmask } from '../lib/validation';
+import { unmask, toInternationalPhone } from '../lib/validation';
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3333' : 'https://api.laboticamanipulacao.com');
 
@@ -117,8 +117,16 @@ export const checkoutService = {
             ...payload,
             cpf: unmask(payload.cpf) || undefined,
             rg: unmask(payload.rg) || undefined,
-            phone: unmask(payload.phone) || undefined,
-            address: payload.address ? { ...payload.address, zip: unmask(payload.address.zip) } : undefined
+            phone: toInternationalPhone(payload.phone) || undefined,
+            address: payload.address
+                ? {
+                    ...payload.address,
+                    zip: unmask(payload.address.zip),
+                    number: payload.address.number === 'SN' || !payload.address.number
+                        ? payload.address.number
+                        : unmask(payload.address.number)
+                }
+                : undefined
         };
         const { data } = await checkoutApi.post(`/${orderId}`, cleanPayload);
         return data;
@@ -127,11 +135,13 @@ export const checkoutService = {
     async processPayment(orderId: string, payload: PaymentData): Promise<PaymentResult> {
         const cleanPayload = {
             ...payload,
-            customerData: payload.customerData ? {
-                ...payload.customerData,
-                cpf: unmask(payload.customerData.cpf),
-                phone: unmask(payload.customerData.phone)
-            } : undefined
+            customerData: payload.customerData
+                ? {
+                    ...payload.customerData,
+                    cpf: unmask(payload.customerData.cpf),
+                    phone: toInternationalPhone(payload.customerData.phone)
+                }
+                : undefined
         };
         const { data } = await checkoutApi.post<PaymentResult>(`/${orderId}/pay`, cleanPayload);
         return data;

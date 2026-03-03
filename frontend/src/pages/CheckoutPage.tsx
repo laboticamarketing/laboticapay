@@ -13,7 +13,7 @@ import {
     Copy, Loader2, ShoppingBag, QrCode, Shield, UploadCloud, Building, Home, Building2, Eye, Edit, Truck
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { validateCpf, maskRG, maskCPF, maskCEP, maskPhone, validatePhone } from '@/lib/validation';
+import { validateCpf, maskRG, maskCPF, maskCEP, maskPhone, maskOnlyDigits, formatPhoneForDisplay, validatePhone } from '@/lib/validation';
 import { useShippingQuotes } from '@/hooks/useShippingQuotes';
 
 function formatCurrency(value: number) {
@@ -125,17 +125,18 @@ export default function CheckoutPage() {
             .then((data) => {
                 setOrder(data);
                 if (data.customer) {
-                    setCpf(data.customer.cpf || '');
+                    setCpf(data.customer.cpf ? maskCPF(data.customer.cpf) : '');
                     setName(data.customer.name === 'Cliente Não Identificado' ? '' : (data.customer.name || ''));
                     setEmail(data.customer.email || '');
-                    setPhone(data.customer.phone || '');
+                    setPhone(formatPhoneForDisplay(data.customer.phone));
+                    setRg(data.customer.rg ? maskRG(data.customer.rg) : '');
                     setBirthDate(data.customer.birthDate ? new Date(data.customer.birthDate).toISOString().split('T')[0] : '');
 
                     const addr = data.customer.addresses?.find(a => a.isPrimary) || data.customer.addresses?.[0];
                     if (addr) {
-                        setCep(addr.zip || '');
+                        setCep(addr.zip ? maskCEP(addr.zip) : '');
                         setStreet(addr.street || '');
-                        setNumber(addr.number || '');
+                        setNumber(addr.number === 'SN' || addr.number === 'S/N' ? '' : addr.number);
                         if (addr.number === 'SN' || addr.number === 'S/N') setNoNumber(true);
                         setNeighborhood(addr.neighborhood || '');
                         setCity(addr.city || '');
@@ -190,17 +191,17 @@ export default function CheckoutPage() {
                 toast.success('Cliente encontrado! Preenchemos seus dados.');
                 setName(res.customer.name);
                 setEmail(res.customer.email || '');
-                setPhone(res.customer.phone);
-                setRg(res.customer.rg || '');
+                setPhone(formatPhoneForDisplay(res.customer.phone));
+                setRg(res.customer.rg ? maskRG(res.customer.rg) : '');
                 if (res.customer.birthDate) {
                     setBirthDate(new Date(res.customer.birthDate).toISOString().split('T')[0]);
                 }
 
                 const addr = res.customer.addresses?.[0];
                 if (addr) {
-                    setCep(addr.zip);
-                    setStreet(addr.street);
-                    setNumber(addr.number);
+                    setCep(addr.zip ? maskCEP(addr.zip) : '');
+                    setStreet(addr.street || '');
+                    setNumber(addr.number === 'SN' || addr.number === 'S/N' ? '' : addr.number);
                     setNeighborhood(addr.neighborhood);
                     setCity(addr.city);
                     setState(addr.state);
@@ -354,7 +355,7 @@ export default function CheckoutPage() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
                 <Card className="max-w-sm w-full text-center">
-                    <CardContent className="p-8 space-y-3">
+                    <CardContent className="p-5 space-y-3">
                         <ShoppingBag className="w-12 h-12 mx-auto text-muted-foreground" />
                         <h2 className="text-lg font-semibold">Pedido não encontrado</h2>
                         <p className="text-sm text-muted-foreground">O link pode ter expirado ou ser inválido.</p>
@@ -384,14 +385,14 @@ export default function CheckoutPage() {
                             className="h-9 w-auto object-contain"
                         />
                     </div>
-                    <div className="flex items-center text-muted-foreground text-sm">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Ambiente 100% Seguro
+                    <div className="flex items-center text-muted-foreground text-sm min-h-[44px]">
+                        <Shield className="w-4 h-4 mr-2 shrink-0" />
+                        <span className="text-[14px]">Ambiente 100% Seguro</span>
                     </div>
                 </div>
             </header>
 
-            <div className="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
+            <div className="max-w-5xl mx-auto px-3 py-5 flex-1 w-full">
                 {/* Stepper */}
                 <div className="flex items-center justify-center mb-6 lg:mb-10 max-w-2xl mx-auto">
                     {STEPS.map((s, i) => {
@@ -399,39 +400,40 @@ export default function CheckoutPage() {
                         const isActive = step === i;
                         return (
                             <div key={s.id} className="flex flex-col items-center relative z-10 w-1/4">
-                                <div className="absolute top-4 left-1/2 w-full h-[2px] bg-border -z-10" style={{ display: i === STEPS.length - 1 ? 'none' : 'block' }}>
+                                <div className="absolute top-5 left-1/2 w-full h-[2px] bg-border -z-10" style={{ display: i === STEPS.length - 1 ? 'none' : 'block' }}>
                                     <div className={`h-full bg-primary-400 transition-all ${isCompleted ? 'w-full' : 'w-0'}`} />
                                 </div>
                                 <button
+                                    type="button"
                                     onClick={() => i < step && setStep(i)}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors shadow-sm mb-2 ${isCompleted ? 'bg-primary-50 text-primary-600 border border-primary-200 cursor-pointer' :
+                                    className={`min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center transition-colors shadow-sm ${isCompleted ? 'bg-primary-50 text-primary-600 border border-primary-200 cursor-pointer' :
                                         isActive ? 'bg-primary-500 text-white border border-primary-600' :
                                             'bg-white text-muted-foreground border border-border'
                                         }`}
+                                    aria-label={`Passo ${i + 1}: ${s.label}`}
                                 >
-                                    {isCompleted ? <Check className="w-4 h-4" /> : (i + 1)}
+                                    {isCompleted ? <Check className="w-5 h-5" /> : <s.icon className="w-5 h-5" />}
                                 </button>
-                                <span className={`text-xs font-medium ${isActive ? 'text-foreground' : isCompleted ? 'text-primary-600' : 'text-muted-foreground'}`}>
-                                    {s.label}
-                                </span>
                             </div>
                         );
                     })}
                 </div>
 
                 {/* Mobile Order Summary (retrátil) */}
-                <div className="lg:hidden mb-6">
+                <div className="lg:hidden mb-4">
                     <Card className="border shadow-sm overflow-hidden rounded-2xl bg-white">
                         <button
                             type="button"
                             onClick={() => setMobileSummaryOpen((v) => !v)}
-                            className="w-full flex items-center justify-between px-4 py-2.5 bg-white"
+                            className="w-full flex items-center justify-between px-3 py-2 min-h-[44px] bg-white touch-manipulation"
+                            aria-expanded={mobileSummaryOpen}
+                            aria-label={mobileSummaryOpen ? 'Ocultar resumo do pedido' : 'Ver resumo do pedido'}
                         >
-                            <div className="flex items-center gap-2">
-                                <ShoppingBag className="w-4 h-4 text-primary-600" />
-                                <div className="text-left">
-                                    <p className="text-sm font-bold text-foreground">Resumo do Pedido</p>
-                                    <p className="text-[11px] font-medium text-primary-600 flex items-center gap-1">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <ShoppingBag className="w-4 h-4 text-primary-600 shrink-0" />
+                                <div className="text-left min-w-0">
+                                    <p className="text-sm font-bold text-foreground whitespace-nowrap truncate" style={{ fontSize: '15px' }}>Resumo do Pedido</p>
+                                    <p className="text-sm font-medium text-primary-600 flex items-center gap-1">
                                         {mobileSummaryOpen ? 'Ocultar detalhes' : 'Ver detalhes'}
                                         {mobileSummaryOpen ? (
                                             <ChevronUp className="w-3 h-3 text-primary-600" />
@@ -442,13 +444,13 @@ export default function CheckoutPage() {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-xs text-muted-foreground">Total</p>
-                                <p className="text-base font-black text-foreground">{formatCurrency(total)}</p>
+                                <p className="text-sm text-muted-foreground">Total</p>
+                                <p className="text-base font-black text-foreground" style={{ fontSize: '16px' }}>{formatCurrency(total)}</p>
                             </div>
                         </button>
 
                         {mobileSummaryOpen && (
-                            <CardContent className="space-y-4 pt-3 pb-4">
+                            <CardContent className="space-y-3 pt-2 pb-3 px-3">
                                 <div className="space-y-3">
                                     {order.items.length > 0 ? order.items.map((item, i) => (
                                         <div key={item.id || i} className="flex gap-3">
@@ -456,11 +458,11 @@ export default function CheckoutPage() {
                                                 <ShoppingBag className="w-4 h-4 text-muted-foreground" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-xs truncate text-foreground">{item.name}</p>
-                                                {item.dosage && <p className="text-[11px] text-muted-foreground">{item.dosage}</p>}
+                                                <p className="font-medium text-sm truncate text-foreground" style={{ fontSize: '14px' }}>{item.name}</p>
+                                                {item.dosage && <p className="text-sm text-muted-foreground mt-0.5" style={{ fontSize: '13px' }}>{item.dosage}</p>}
                                             </div>
                                             {typeof item.price === 'number' && (
-                                                <span className="text-xs font-semibold text-foreground">
+                                                <span className="text-sm font-semibold text-foreground" style={{ fontSize: '14px' }}>
                                                     {formatCurrency(item.price)}
                                                 </span>
                                             )}
@@ -471,8 +473,8 @@ export default function CheckoutPage() {
                                                 <ShoppingBag className="w-4 h-4 text-muted-foreground" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-xs truncate text-foreground">Fórmula Personalizada</p>
-                                                <p className="text-[11px] text-muted-foreground">Orçamento sob medida</p>
+                                                <p className="font-medium text-sm truncate text-foreground" style={{ fontSize: '14px' }}>Fórmula Personalizada</p>
+                                                <p className="text-sm text-muted-foreground mt-0.5" style={{ fontSize: '13px' }}>Orçamento sob medida</p>
                                             </div>
                                         </div>
                                     )}
@@ -480,7 +482,7 @@ export default function CheckoutPage() {
 
                                 <Separator />
 
-                                <div className="space-y-1.5 text-xs">
+                                <div className="space-y-1.5 text-sm" style={{ fontSize: '14px' }}>
                                     <div className="flex justify-between text-muted-foreground">
                                         <span>Subtotal</span>
                                         <span className="text-foreground">{formatCurrency(order.totalValue)}</span>
@@ -507,10 +509,10 @@ export default function CheckoutPage() {
 
                                 <div className="pt-2 border-t border-border flex items-center justify-between">
                                     <div>
-                                        <p className="text-[11px] text-muted-foreground uppercase tracking-wide">Total</p>
-                                        <p className="text-xl font-black text-foreground">{formatCurrency(total)}</p>
+                                        <p className="text-sm text-muted-foreground uppercase tracking-wide" style={{ fontSize: '13px' }}>Total</p>
+                                        <p className="text-lg font-black text-foreground mt-0.5" style={{ fontSize: '16px' }}>{formatCurrency(total)}</p>
                                     </div>
-                                    <p className="text-[11px] text-muted-foreground text-right">
+                                    <p className="text-sm text-muted-foreground text-right" style={{ fontSize: '13px' }}>
                                         ou 6x de {formatCurrency(installmentValue)} s/ juros
                                     </p>
                                 </div>
@@ -519,28 +521,28 @@ export default function CheckoutPage() {
                     </Card>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
                     {/* Left Column: Form Content */}
                     <div className="space-y-6">
                         {paymentResult?.success ? (
                             <Card>
-                                <CardContent className="p-8">
+                                <CardContent className="p-5">
                                     <PaymentResultView result={paymentResult} total={total} order={order} />
                                 </CardContent>
                             </Card>
                         ) : (
                             <Card className="border shadow-sm">
-                                <CardContent className="p-6">
+                                <CardContent className="p-4">
                                     {/* STEP 1: IDENTIFICAÇÃO */}
                                     {step === 0 && (
-                                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                                            <div className="flex items-center gap-2 text-primary-700 font-semibold text-lg mb-6">
-                                                <User className="w-5 h-5" /> Informações Pessoais
+                                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                                            <div className="flex items-center gap-2 text-primary-700 font-semibold text-base mb-4" style={{ fontSize: '16px' }}>
+                                                <User className="w-5 h-5 shrink-0" /> Informações Pessoais
                                             </div>
 
                                             <div className="space-y-4">
                                                 <div className="space-y-2">
-                                                    <Label className="flex items-center justify-between">
+                                                    <Label className="flex items-center justify-between text-sm" style={{ fontSize: '14px' }}>
                                                         <span>CPF <span className="text-destructive">*</span></span>
                                                         {lookingUpCpf && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
                                                     </Label>
@@ -549,29 +551,30 @@ export default function CheckoutPage() {
                                                         onChange={e => setCpf(maskCPF(e.target.value))}
                                                         placeholder="000.000.000-00"
                                                         maxLength={14}
-                                                        className="text-lg"
+                                                        className="text-base min-h-[48px]"
+                                                        style={{ fontSize: '16px' }}
                                                     />
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <Label>Nome Completo <span className="text-destructive">*</span></Label>
-                                                    <Input value={name} onChange={e => setName(e.target.value)} placeholder="Renan Rafaesky Souza" />
+                                                    <Label className="text-sm" style={{ fontSize: '14px' }}>Nome Completo <span className="text-destructive">*</span></Label>
+                                                    <Input value={name} onChange={e => setName(e.target.value)} placeholder="Digite seu nome completo" className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>Data de Nascimento <span className="text-destructive">*</span></Label>
-                                                        <Input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} />
+                                                        <Label className="text-sm" style={{ fontSize: '14px' }}>Data de Nascimento <span className="text-destructive">*</span></Label>
+                                                        <Input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>RG <span className="text-destructive">*</span></Label>
-                                                        <Input value={rg} onChange={e => setRg(maskRG(e.target.value))} placeholder="00.000.000-00" maxLength={13} />
+                                                        <Label className="text-sm" style={{ fontSize: '14px' }}>RG <span className="text-destructive">*</span></Label>
+                                                        <Input value={rg} onChange={e => setRg(maskRG(e.target.value))} placeholder="00.000.000-00" maxLength={13} className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div className="pt-4 flex justify-end border-t mt-6 border-border/50">
-                                                <Button className="bg-primary-500 hover:bg-primary-600 text-white font-semibold flex gap-2" size="lg" onClick={goStep2}>
+                                            <div className="pt-4 border-t mt-4 border-border/50">
+                                                <Button className="bg-green-600 hover:bg-green-700 text-white font-semibold flex gap-2 w-full justify-center min-h-[48px] text-base" size="lg" onClick={goStep2} style={{ fontSize: '16px' }}>
                                                     Avançar <ChevronRight className="w-4 h-4 ml-1" />
                                                 </Button>
                                             </div>
@@ -580,52 +583,52 @@ export default function CheckoutPage() {
 
                                     {/* STEP 2: ENDEREÇO */}
                                     {step === 1 && (
-                                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                                            <div className="flex items-center gap-2 text-primary-700 font-semibold text-lg mb-2">
-                                                <MapPin className="w-5 h-5" /> Endereço
+                                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                                            <div className="flex items-center gap-2 text-primary-700 font-semibold text-base mb-2" style={{ fontSize: '16px' }}>
+                                                <MapPin className="w-5 h-5 shrink-0" /> Endereço
                                             </div>
 
                                             <div className="space-y-4">
                                                 <div className="space-y-2">
-                                                    <Label>CEP <span className="text-destructive">*</span></Label>
-                                                    <Input value={cep} onChange={e => { setCep(maskCEP(e.target.value)); fetchCep(e.target.value); }} placeholder="00000-000" maxLength={9} />
+                                                    <Label className="text-sm" style={{ fontSize: '14px' }}>CEP <span className="text-destructive">*</span></Label>
+                                                    <Input value={cep} onChange={e => { setCep(maskCEP(e.target.value)); fetchCep(e.target.value); }} placeholder="00000-000" maxLength={9} className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-[1fr_120px] gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>Rua / Logradouro <span className="text-destructive">*</span></Label>
-                                                        <Input value={street} onChange={e => setStreet(e.target.value)} />
+                                                        <Label className="text-sm" style={{ fontSize: '14px' }}>Rua / Logradouro <span className="text-destructive">*</span></Label>
+                                                        <Input value={street} onChange={e => setStreet(e.target.value)} className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>Número <span className="text-destructive">*</span></Label>
-                                                        <Input value={number} onChange={e => setNumber(e.target.value)} disabled={noNumber} />
+                                                        <Label className="text-sm" style={{ fontSize: '14px' }}>Número <span className="text-destructive">*</span></Label>
+                                                        <Input value={number} onChange={e => setNumber(maskOnlyDigits(e.target.value, 10))} disabled={noNumber} placeholder="Ex: 123" className="text-base min-h-[48px]" style={{ fontSize: '16px' }} inputMode="numeric" />
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center space-x-2">
+                                                <div className="flex items-center space-x-2 min-h-[48px]">
                                                     <Checkbox id="noNumber" checked={noNumber} onCheckedChange={(c: boolean) => { setNoNumber(c); if (c) setNumber(''); }} />
-                                                    <label htmlFor="noNumber" className="text-sm font-medium leading-none cursor-pointer">Sem número</label>
+                                                    <label htmlFor="noNumber" className="text-sm font-medium leading-none cursor-pointer" style={{ fontSize: '14px' }}>Sem número</label>
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>Bairro <span className="text-destructive">*</span></Label>
-                                                        <Input value={neighborhood} onChange={e => setNeighborhood(e.target.value)} />
+                                                        <Label className="text-sm" style={{ fontSize: '14px' }}>Bairro <span className="text-destructive">*</span></Label>
+                                                        <Input value={neighborhood} onChange={e => setNeighborhood(e.target.value)} className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>Complemento</Label>
-                                                        <Input value={complement} onChange={e => setComplement(e.target.value)} placeholder="Apto, Bloco, etc." />
+                                                        <Label className="text-sm" style={{ fontSize: '14px' }}>Complemento</Label>
+                                                        <Input value={complement} onChange={e => setComplement(e.target.value)} placeholder="Apto, Bloco, etc." className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-[1fr_100px] gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-[1fr_100px] gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>Cidade <span className="text-destructive">*</span></Label>
-                                                        <Input value={city} onChange={e => setCity(e.target.value)} />
+                                                        <Label className="text-sm" style={{ fontSize: '14px' }}>Cidade <span className="text-destructive">*</span></Label>
+                                                        <Input value={city} onChange={e => setCity(e.target.value)} className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>UF <span className="text-destructive">*</span></Label>
-                                                        <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background" value={state} onChange={e => setState(e.target.value)}>
+                                                        <Label className="text-sm" style={{ fontSize: '14px' }}>UF <span className="text-destructive">*</span></Label>
+                                                        <select className="flex h-12 w-full min-h-[48px] rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background" style={{ fontSize: '16px' }} value={state} onChange={e => setState(e.target.value)}>
                                                             {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (
                                                                 <option key={uf} value={uf}>{uf}</option>
                                                             ))}
@@ -634,14 +637,16 @@ export default function CheckoutPage() {
                                                 </div>
 
                                                 <div className="space-y-2 pt-2">
-                                                    <Label className="text-muted-foreground text-xs font-normal">Tipo de Endereço (Opcional)</Label>
-                                                    <div className="flex gap-3">
+                                                    <Label className="text-muted-foreground text-sm font-normal" style={{ fontSize: '14px' }}>Tipo de Endereço (Opcional)</Label>
+                                                    <div className="flex flex-wrap gap-3">
                                                         {(['Casa', 'Trabalho', 'Outro'] as const).map(type => (
                                                             <button
                                                                 key={type}
+                                                                type="button"
                                                                 onClick={() => setAddressType(type)}
-                                                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border text-sm transition-colors ${addressType === type ? 'border-primary-500 text-primary-600 bg-primary-50' : 'border-border text-muted-foreground hover:bg-muted'
+                                                                className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-3 rounded-lg border text-sm transition-colors min-h-[48px] ${addressType === type ? 'border-primary-500 text-primary-600 bg-primary-50' : 'border-border text-muted-foreground hover:bg-muted'
                                                                     }`}
+                                                                style={{ fontSize: '14px' }}
                                                             >
                                                                 {type === 'Casa' ? <Home className="w-4 h-4" /> : type === 'Trabalho' ? <Building2 className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
                                                                 {type}
@@ -650,36 +655,40 @@ export default function CheckoutPage() {
                                                     </div>
                                                 </div>
 
-                                                <Separator className="my-6" />
+                                                <Separator className="my-4" />
 
-                                                <div className="space-y-4">
-                                                    <div className="flex items-center gap-2 text-primary-700 font-semibold mb-2">
-                                                        <Building className="w-5 h-5" /> Método de Entrega / Retirada
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center gap-2 text-primary-700 font-semibold mb-2 text-sm" style={{ fontSize: '15px' }}>
+                                                        <Building className="w-5 h-5 shrink-0" /> Método de Entrega
                                                     </div>
-                                                    <div className="flex gap-3">
+                                                    <div className="flex flex-col sm:flex-row gap-3">
                                                         <button
+                                                            type="button"
                                                             onClick={() => setDeliveryMethod('SHIP')}
-                                                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border font-medium transition-colors ${deliveryMethod === 'SHIP' ? 'border-primary-500 text-primary-600 shadow-sm' : 'border-border text-muted-foreground bg-muted/30 hover:bg-muted'
+                                                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border font-medium transition-colors min-h-[48px] text-sm ${deliveryMethod === 'SHIP' ? 'border-primary-500 text-primary-600 shadow-sm' : 'border-border text-muted-foreground bg-muted/30 hover:bg-muted'
                                                                 }`}
+                                                            style={{ fontSize: '14px' }}
                                                         >
-                                                            Entrega via Transportadora
+                                                            Entrega
                                                         </button>
                                                         <button
+                                                            type="button"
                                                             onClick={() => setDeliveryMethod('PICKUP')}
-                                                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border font-medium transition-colors ${deliveryMethod === 'PICKUP' ? 'border-primary-500 text-primary-600 shadow-sm' : 'border-border text-muted-foreground bg-muted/30 hover:bg-muted'
+                                                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border font-medium transition-colors min-h-[48px] text-sm ${deliveryMethod === 'PICKUP' ? 'border-primary-500 text-primary-600 shadow-sm' : 'border-border text-muted-foreground bg-muted/30 hover:bg-muted'
                                                                 }`}
+                                                            style={{ fontSize: '14px' }}
                                                         >
                                                             Retirar na Loja
                                                         </button>
                                                     </div>
 
                                                     {deliveryMethod === 'PICKUP' && (
-                                                        <div className="space-y-3 mt-4 animate-in fade-in slide-in-from-top-2">
+                                                        <div className="space-y-2 mt-3 animate-in fade-in slide-in-from-top-2">
                                                             <p className="text-sm font-medium text-foreground">Escolha a unidade para retirada:</p>
                                                             {PICKUP_LOCATIONS.map((loc) => (
                                                                 <label
                                                                     key={loc.id}
-                                                                    className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${pickupLocationId === loc.id ? 'border-primary-500 bg-primary-50/50' : 'border-border hover:bg-muted/50'}`}
+                                                                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${pickupLocationId === loc.id ? 'border-primary-500 bg-primary-50/50' : 'border-border hover:bg-muted/50'}`}
                                                                 >
                                                                     <div className="mt-0.5 pt-0.5">
                                                                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${pickupLocationId === loc.id ? 'border-primary-500' : 'border-muted-foreground'}`}>
@@ -699,12 +708,12 @@ export default function CheckoutPage() {
                                                     )}
 
                                                     {deliveryMethod === 'SHIP' && (
-                                                        <div className="space-y-3 mt-4 animate-in fade-in slide-in-from-top-2">
+                                                        <div className="space-y-2 mt-3 animate-in fade-in slide-in-from-top-2">
                                                             {order?.shippingType === 'DYNAMIC' ? (
                                                                 <>
                                                                     <p className="text-sm font-medium text-foreground">Opções de Frete:</p>
                                                                     {loadingQuotes ? (
-                                                                        <div className="flex items-center gap-2 p-4 rounded-lg border text-sm text-muted-foreground bg-muted/30">
+                                                                        <div className="flex items-center gap-2 p-3 rounded-lg border text-sm text-muted-foreground bg-muted/30">
                                                                             <Loader2 className="w-4 h-4 animate-spin" />
                                                                             Calculando frete...
                                                                         </div>
@@ -713,22 +722,19 @@ export default function CheckoutPage() {
                                                                             {shippingQuotes.map(quote => (
                                                                                 <label
                                                                                     key={quote.id}
-                                                                                    className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${selectedQuoteId === quote.id ? 'border-primary-500 bg-primary-50/50' : 'border-border hover:bg-muted/50'}`}
+                                                                                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedQuoteId === quote.id ? 'border-primary-500 bg-primary-50/50' : 'border-border hover:bg-muted/50'}`}
                                                                                 >
-                                                                                    <div className="flex items-center gap-3">
-                                                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${selectedQuoteId === quote.id ? 'border-primary-500' : 'border-muted-foreground'}`}>
-                                                                                            {selectedQuoteId === quote.id && <div className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
-                                                                                        </div>
-                                                                                        {quote.company?.picture && <img src={quote.company.picture} alt={quote.company.name} className="h-6 w-auto max-w-[40px] object-contain grayscale" />}
-                                                                                        <div>
-                                                                                            <p className="font-semibold text-foreground text-sm flex items-center gap-1">
-                                                                                                {quote.name}
-                                                                                            </p>
-                                                                                            <p className="text-xs text-muted-foreground mt-0.5">Entrega em até {quote.deliveryTime} dias úteis</p>
-                                                                                        </div>
+                                                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${selectedQuoteId === quote.id ? 'border-primary-500' : 'border-muted-foreground'}`}>
+                                                                                        {selectedQuoteId === quote.id && <div className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
                                                                                     </div>
-                                                                                    <div className="font-bold text-primary-600">
-                                                                                        {formatCurrency(quote.price)}
+                                                                                    <div className="min-w-0 flex-1">
+                                                                                        <p className="font-semibold text-foreground text-sm truncate">
+                                                                                            {quote.name}
+                                                                                        </p>
+                                                                                        <p className="text-xs text-muted-foreground mt-0.5">Entrega em até {quote.deliveryTime} dias úteis</p>
+                                                                                        <p className="font-bold text-primary-600 text-sm mt-1" style={{ fontSize: '15px' }}>
+                                                                                            {formatCurrency(quote.price)}
+                                                                                        </p>
                                                                                     </div>
                                                                                     <input
                                                                                         type="radio"
@@ -759,12 +765,12 @@ export default function CheckoutPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="pt-4 flex justify-between border-t mt-6 border-border/50">
-                                                <Button variant="ghost" onClick={() => setStep(0)} className="text-muted-foreground">
-                                                    <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
-                                                </Button>
-                                                <Button className="bg-primary-500 hover:bg-primary-600 text-white font-semibold flex gap-2 px-8" size="lg" onClick={goStep3}>
+                                            <div className="pt-4 flex flex-col sm:flex-row sm:justify-between gap-3 border-t mt-4 border-border/50">
+                                                <Button className="bg-green-600 hover:bg-green-700 text-white font-semibold flex gap-2 w-full sm:w-auto justify-center min-h-[48px] px-8 order-1 sm:order-2 text-base" size="lg" onClick={goStep3} style={{ fontSize: '16px' }}>
                                                     Avançar <ChevronRight className="w-4 h-4" />
+                                                </Button>
+                                                <Button variant="ghost" onClick={() => setStep(0)} className="text-muted-foreground min-h-[48px] text-sm w-full sm:w-auto order-2 sm:order-1" style={{ fontSize: '14px' }}>
+                                                    <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
                                                 </Button>
                                             </div>
                                         </div>
@@ -772,27 +778,28 @@ export default function CheckoutPage() {
 
                                     {/* STEP 3: CONTATO E DOCUMENTOS */}
                                     {step === 2 && (
-                                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                                            <div className="flex items-center gap-2 text-primary-700 font-semibold text-lg mb-6">
-                                                <FileText className="w-5 h-5" /> Contato e Documentos
+                                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                                            <div className="flex items-center gap-2 text-primary-700 font-semibold text-base mb-4" style={{ fontSize: '16px' }}>
+                                                <FileText className="w-5 h-5 shrink-0" /> Contato e Documentos
                                             </div>
 
                                             <div className="space-y-4">
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>Telefone / WhatsApp <span className="text-destructive">*</span></Label>
-                                                        <Input value={phone} onChange={e => setPhone(maskPhone(e.target.value))} placeholder="(00) 00000-0000" />
+                                                        <Label className="text-sm" style={{ fontSize: '14px' }}>Telefone / WhatsApp <span className="text-destructive">*</span></Label>
+                                                        <Input value={phone} onChange={e => setPhone(maskPhone(e.target.value))} placeholder="(00) 00000-0000" className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>E-mail <span className="text-muted-foreground font-normal">(Opcional)</span></Label>
-                                                        <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemplo.com" />
+                                                        <Label className="text-sm" style={{ fontSize: '14px' }}>E-mail <span className="text-muted-foreground font-normal">(Opcional)</span></Label>
+                                                        <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemplo.com" className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                     </div>
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <Label>Observações <span className="text-muted-foreground font-normal">(Opcional)</span></Label>
+                                                    <Label className="text-sm" style={{ fontSize: '14px' }}>Observações <span className="text-muted-foreground font-normal">(Opcional)</span></Label>
                                                     <textarea
-                                                        className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                                        className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                                        style={{ fontSize: '16px' }}
                                                         placeholder="Ex: Deixar na portaria, campainha não funciona..."
                                                         value={observations}
                                                         onChange={e => setObservations(e.target.value)}
@@ -800,14 +807,14 @@ export default function CheckoutPage() {
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <Label>Anexo da Receita <span className="text-muted-foreground font-normal">(Opcional) - PDF, JPG ou PNG - Max 10MB</span></Label>
+                                                    <Label className="text-sm" style={{ fontSize: '14px' }}>Anexo da Receita <span className="text-muted-foreground font-normal">(Opcional) - PDF, JPG ou PNG - Max 10MB</span></Label>
                                                     <div
-                                                        className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                                                        className="border-2 border-dashed border-border rounded-lg p-4 sm:p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors min-h-[100px] flex flex-col items-center justify-center"
                                                         onClick={() => fileInputRef.current?.click()}
                                                     >
-                                                        <UploadCloud className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-                                                        <p className="font-medium text-foreground">Clique ou arraste o arquivo aqui</p>
-                                                        <p className="text-sm text-muted-foreground">{attachment ? attachment.name : 'Nenhum arquivo selecionado'}</p>
+                                                        <UploadCloud className="w-10 h-10 mx-auto text-muted-foreground mb-3 shrink-0" />
+                                                        <p className="font-medium text-foreground text-sm" style={{ fontSize: '15px' }}>Clique ou arraste o arquivo aqui</p>
+                                                        <p className="text-sm text-muted-foreground mt-1" style={{ fontSize: '14px' }}>{attachment ? attachment.name : 'Nenhum arquivo selecionado'}</p>
                                                         <input
                                                             type="file"
                                                             className="hidden"
@@ -823,13 +830,13 @@ export default function CheckoutPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="pt-4 flex justify-between border-t mt-6 border-border/50">
-                                                <Button variant="ghost" onClick={() => setStep(1)} className="text-muted-foreground" disabled={submitting}>
-                                                    <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
-                                                </Button>
-                                                <Button className="bg-primary-500 hover:bg-primary-600 text-white font-semibold flex gap-2 px-8" size="lg" onClick={goStep4} disabled={submitting}>
+                                            <div className="pt-4 flex flex-col sm:flex-row sm:justify-between gap-3 border-t mt-4 border-border/50">
+                                                <Button className="bg-green-600 hover:bg-green-700 text-white font-semibold flex gap-2 w-full sm:w-auto justify-center min-h-[48px] px-8 order-1 sm:order-2 text-base" size="lg" onClick={goStep4} disabled={submitting} style={{ fontSize: '16px' }}>
                                                     {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                                     Avançar <ChevronRight className="w-4 h-4" />
+                                                </Button>
+                                                <Button variant="ghost" onClick={() => setStep(1)} className="text-muted-foreground min-h-[48px] text-sm w-full sm:w-auto order-2 sm:order-1" style={{ fontSize: '14px' }} disabled={submitting}>
+                                                    <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
                                                 </Button>
                                             </div>
                                         </div>
@@ -837,9 +844,9 @@ export default function CheckoutPage() {
 
                                     {/* STEP 4: CONFIRMAIR E PAGAR */}
                                     {step === 3 && (
-                                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                                            <div className="flex items-center gap-2 text-primary-600 font-semibold text-lg mb-2">
-                                                <Check className="w-5 h-5" /> Confirmar e Pagar
+                                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                                            <div className="flex items-center gap-2 text-primary-600 font-semibold text-base mb-2" style={{ fontSize: '16px' }}>
+                                                <Check className="w-5 h-5 shrink-0" /> Confirmar e Pagar
                                             </div>
 
                                             {/* Review sections */}
@@ -958,8 +965,10 @@ export default function CheckoutPage() {
                                                                         <Label className="text-xs">Número</Label>
                                                                         <Input
                                                                             value={number}
-                                                                            onChange={e => setNumber(e.target.value)}
+                                                                            onChange={e => setNumber(maskOnlyDigits(e.target.value, 10))}
                                                                             disabled={noNumber}
+                                                                            placeholder="Ex: 123"
+                                                                            inputMode="numeric"
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -1057,7 +1066,7 @@ export default function CheckoutPage() {
                                                         </div>
                                                         <p className="font-medium text-sm text-primary-900">
                                                             {deliveryMethod === 'SHIP'
-                                                                ? 'Entrega via Transportadora/Moto'
+                                                                ? 'Entrega'
                                                                 : `Retirar na Loja: ${PICKUP_LOCATIONS.find(l => l.id === pickupLocationId)?.title || ''}`}
                                                         </p>
                                                         <p className="text-sm text-primary-700">
@@ -1142,24 +1151,22 @@ export default function CheckoutPage() {
                                                                                 {shippingQuotes.map(quote => (
                                                                                     <label
                                                                                         key={quote.id}
-                                                                                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${selectedQuoteId === quote.id ? 'border-primary-500 bg-primary-50/60' : 'border-border hover:bg-muted/60'}`}
+                                                                                        className={`flex items-start gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${selectedQuoteId === quote.id ? 'border-primary-500 bg-primary-50/60' : 'border-border hover:bg-muted/60'}`}
                                                                                         onClick={() => selectQuote(quote)}
                                                                                     >
-                                                                                        <div className="flex items-center gap-2">
-                                                                                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${selectedQuoteId === quote.id ? 'border-primary-500' : 'border-muted-foreground'}`}>
-                                                                                                {selectedQuoteId === quote.id && <div className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                <p className="font-medium text-xs text-foreground flex items-center gap-1">
-                                                                                                    {quote.name}
-                                                                                                </p>
-                                                                                                <p className="text-[11px] text-muted-foreground mt-0.5">
-                                                                                                    Entrega em até {quote.deliveryTime} dias úteis
-                                                                                                </p>
-                                                                                            </div>
+                                                                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${selectedQuoteId === quote.id ? 'border-primary-500' : 'border-muted-foreground'}`}>
+                                                                                            {selectedQuoteId === quote.id && <div className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
                                                                                         </div>
-                                                                                        <div className="font-bold text-xs text-primary-600">
-                                                                                            {formatCurrency(quote.price)}
+                                                                                        <div className="min-w-0 flex-1">
+                                                                                            <p className="font-medium text-xs text-foreground">
+                                                                                                {quote.name}
+                                                                                            </p>
+                                                                                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                                                                                                Entrega em até {quote.deliveryTime} dias úteis
+                                                                                            </p>
+                                                                                            <p className="font-bold text-xs text-primary-600 mt-1">
+                                                                                                {formatCurrency(quote.price)}
+                                                                                            </p>
                                                                                         </div>
                                                                                     </label>
                                                                                 ))}
@@ -1202,35 +1209,33 @@ export default function CheckoutPage() {
                                             {/* Payment Selection */}
                                             <div className="space-y-4">
                                                 <div>
-                                                    <h3 className="font-bold text-lg">Pagamento</h3>
-                                                    <p className="text-sm text-muted-foreground">Todas as transações são seguras e criptografadas.</p>
+                                                    <h3 className="font-bold text-base" style={{ fontSize: '16px' }}>Pagamento</h3>
+                                                    <p className="text-sm text-muted-foreground mt-1" style={{ fontSize: '14px' }}>Todas as transações são seguras e criptografadas.</p>
                                                 </div>
 
                                                     <div className="space-y-3">
                                                     {/* CARD Selection */}
                                                     <label
-                                                        className={`block border p-4 rounded-lg cursor-pointer transition-colors ${paymentMethod === 'CARD' ? 'border-primary-500 bg-primary-50/30' : 'border-border hover:bg-muted'}`}
+                                                        className={`block border p-4 rounded-lg cursor-pointer transition-colors overflow-hidden ${paymentMethod === 'CARD' ? 'border-primary-500 bg-primary-50/30' : 'border-border hover:bg-muted'}`}
                                                         onClick={() => setPaymentMethod('CARD')}
                                                     >
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'CARD' ? 'border-primary-500' : 'border-muted-foreground'}`}>
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${paymentMethod === 'CARD' ? 'border-primary-500' : 'border-muted-foreground'}`}>
                                                                 {paymentMethod === 'CARD' && <div className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
                                                             </div>
-                                                            <span className="font-medium flex-1">Cartão de Crédito</span>
-                                                            <div className="flex items-center gap-1.5">
+                                                            <span className="font-medium flex-1 min-w-0 text-sm sm:text-base whitespace-nowrap truncate" style={{ fontSize: '15px' }}>Cartão de Crédito</span>
+                                                            <div className="flex items-center gap-1.5 shrink-0 w-[min(100px,30%)] justify-end">
                                                                 <img
                                                                     src="/icons/checkout/payments/visa.svg"
                                                                     alt="Visa"
-                                                                    className="h-5 w-auto"
+                                                                    className="h-5 max-w-[2rem] w-auto object-contain"
                                                                 />
                                                                 <img
                                                                     src="/icons/checkout/payments/mastercard.svg"
                                                                     alt="Mastercard"
-                                                                    className="h-5 w-auto"
+                                                                    className="h-5 max-w-[2rem] w-auto object-contain"
                                                                 />
-                                                                <span className="text-[10px] font-medium text-muted-foreground ml-0.5">
-                                                                    +3
-                                                                </span>
+                                                                <span className="text-[10px] font-medium text-muted-foreground">+3</span>
                                                             </div>
                                                         </div>
                                                         {paymentMethod === 'CARD' && (
@@ -1248,10 +1253,10 @@ export default function CheckoutPage() {
                                                         onClick={() => setPaymentMethod('PIX')}
                                                     >
                                                         <div className="flex items-center gap-3">
-                                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'PIX' ? 'border-primary-500' : 'border-muted-foreground'}`}>
+                                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${paymentMethod === 'PIX' ? 'border-primary-500' : 'border-muted-foreground'}`}>
                                                                 {paymentMethod === 'PIX' && <div className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
                                                             </div>
-                                                            <span className="font-medium flex-1">Pix</span>
+                                                            <span className="font-medium flex-1 text-sm sm:text-base" style={{ fontSize: '15px' }}>Pix</span>
                                                             <div className="w-12 h-5 rounded grid place-items-center opacity-80">
                                                                 <img
                                                                     src="/icons/checkout/payments/pix.svg"
@@ -1269,18 +1274,19 @@ export default function CheckoutPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="pt-4 flex justify-between border-t mt-6 border-border/50">
-                                                <Button variant="ghost" onClick={() => setStep(2)} className="text-muted-foreground" disabled={submitting}>
-                                                    <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
-                                                </Button>
+                                            <div className="pt-4 flex flex-col sm:flex-row sm:justify-between gap-3 border-t mt-4 border-border/50">
                                                 <Button
-                                                    className="bg-primary-500 hover:bg-primary-600 text-white font-bold flex gap-2 w-full sm:w-auto px-8"
+                                                    className="bg-green-600 hover:bg-green-700 text-white font-bold flex gap-2 w-full sm:w-auto justify-center min-h-[48px] px-8 order-1 sm:order-2 text-base"
                                                     size="lg"
                                                     onClick={handlePayment}
                                                     disabled={submitting || !paymentMethod}
+                                                    style={{ fontSize: '16px' }}
                                                 >
                                                     {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Shield className="w-4 h-4 mr-2" />}
                                                     Pagar Agora
+                                                </Button>
+                                                <Button variant="ghost" onClick={() => setStep(2)} className="text-muted-foreground min-h-[48px] text-sm w-full sm:w-auto order-2 sm:order-1" style={{ fontSize: '14px' }} disabled={submitting}>
+                                                    <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
                                                 </Button>
                                             </div>
                                         </div>
@@ -1294,11 +1300,11 @@ export default function CheckoutPage() {
                     <div className="hidden lg:block">
                         <div className="sticky top-24">
                             <Card className="border shadow-sm">
-                                <CardHeader className="pb-3">
+                                <CardHeader className="pb-2 pt-4 px-4">
                                     <CardTitle className="text-base font-bold">Resumo do Pedido</CardTitle>
                                     <p className="text-xs text-muted-foreground">Pedido #{order.id.split('-')[0]}</p>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
+                                <CardContent className="space-y-3 px-4 pb-4">
                                     <div className="space-y-3 pb-4 border-b">
                                         {order.items.length > 0 ? order.items.map((item, i) => (
                                             <div key={item.id || i} className="flex gap-3">
@@ -1485,7 +1491,7 @@ function SuccessView({ order }: { order: CheckoutOrder }) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
             <Card className="max-w-md w-full text-center shadow-lg border-primary-200">
-                <CardContent className="p-10 space-y-6">
+                <CardContent className="p-6 space-y-4">
                     <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary-500/10">
                         <Check className="w-10 h-10 text-primary-600" />
                     </div>
