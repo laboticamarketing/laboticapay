@@ -101,6 +101,7 @@ export default function CheckoutPage() {
     const [editDeliveryOpen, setEditDeliveryOpen] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const lastFetchedCepRef = useRef<string | null>(null);
 
     // ─── Persistir passo do checkout (voltar de onde parou) ───
     useEffect(() => {
@@ -232,25 +233,34 @@ export default function CheckoutPage() {
         }
     };
 
-    // ─── CEP auto-fill ───
-    const fetchCep = async (value: string) => {
-        const clean = value.replace(/\D/g, '');
-        if (clean.length !== 8) return;
-        try {
-            const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
-            const data = await res.json();
-            if (!data.erro) {
-                setStreet(data.logradouro || '');
-                setNeighborhood(data.bairro || '');
-                setCity(data.localidade || '');
-                setState(data.uf || '');
+    // ─── CEP auto-fill: dispara quando o estado cep tiver 8 dígitos (digitação, paste ou carregamento) ───
+    useEffect(() => {
+        const clean = cep.replace(/\D/g, '');
+        if (clean.length !== 8) {
+            lastFetchedCepRef.current = null;
+            return;
+        }
+        if (lastFetchedCepRef.current === clean) return;
+        lastFetchedCepRef.current = clean;
 
-                if (order?.shippingType === 'DYNAMIC') {
-                    await fetchShippingQuotes(clean, 'Erro ao calcular frete Automático.');
+        (async () => {
+            try {
+                const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+                const data = await res.json();
+                if (!data.erro) {
+                    setStreet(data.logradouro || '');
+                    setNeighborhood(data.bairro || '');
+                    setCity(data.localidade || '');
+                    setState(data.uf || '');
+                    if (order?.shippingType === 'DYNAMIC') {
+                        await fetchShippingQuotes(clean, 'Erro ao calcular frete Automático.');
+                    }
                 }
+            } catch {
+                lastFetchedCepRef.current = null;
             }
-        } catch { /* ignore */ }
-    };
+        })();
+    }, [cep, order?.shippingType, fetchShippingQuotes]);
 
     // ─── Step Actions ───
     const goStep2 = async () => {
@@ -591,7 +601,7 @@ export default function CheckoutPage() {
                                             <div className="space-y-4">
                                                 <div className="space-y-2">
                                                     <Label className="text-sm" style={{ fontSize: '14px' }}>CEP <span className="text-destructive">*</span></Label>
-                                                    <Input value={cep} onChange={e => { setCep(maskCEP(e.target.value)); fetchCep(e.target.value); }} placeholder="00000-000" maxLength={9} className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
+                                                    <Input value={cep} onChange={e => setCep(maskCEP(e.target.value))} placeholder="00000-000" maxLength={9} className="text-base min-h-[48px]" style={{ fontSize: '16px' }} />
                                                 </div>
 
                                                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-4">
@@ -1024,7 +1034,7 @@ export default function CheckoutPage() {
                                                                     <Label className="text-xs">CEP</Label>
                                                                     <Input
                                                                         value={cep}
-                                                                        onChange={e => { setCep(maskCEP(e.target.value)); fetchCep(e.target.value); }}
+                                                                        onChange={e => setCep(maskCEP(e.target.value))}
                                                                         maxLength={9}
                                                                         placeholder="00000-000"
                                                                     />
