@@ -1,8 +1,11 @@
 # Use Node.js LTS
 FROM node:20-alpine
 
-# Install OpenSSL for Prisma
-RUN apk add --no-cache openssl
+# Install OpenSSL for Prisma + git for erede-node (GitHub dependency)
+RUN apk add --no-cache openssl git
+
+# Use HTTPS for GitHub clones (Docker has no SSH keys)
+RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
 # Set working directory
 WORKDIR /app
