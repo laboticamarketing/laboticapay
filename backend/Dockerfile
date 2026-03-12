@@ -1,11 +1,8 @@
 # Use Node.js LTS
 FROM node:20-alpine
 
-# Install OpenSSL for Prisma + git for erede-node (GitHub dependency)
-RUN apk add --no-cache openssl git
-
-# Use HTTPS for GitHub clones (Docker has no SSH keys)
-RUN git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
 
 # Set working directory
 WORKDIR /app
@@ -13,10 +10,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-
-# Install dependencies
-# Note: uniapp zip seems relevant based on file list, but might be legacy?
-# Just installing via npm
+# Install ALL dependencies (including devDependencies for TypeScript build)
+# NODE_ENV must not be production here, or npm will skip devDependencies
+ENV NODE_ENV=development
 RUN npm install
 
 # Copy source code
@@ -28,9 +24,11 @@ RUN npx prisma generate
 # Build TypeScript
 RUN npm run build
 
+# Production runtime
+ENV NODE_ENV=production
+
 # Expose port
 EXPOSE 4000
 
-# Start command
-# Start command with Migration
-CMD npx prisma db push --accept-data-loss && npx prisma db seed && npm start
+# Start command (JSON form for proper signal handling)
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx prisma db seed && npm start"]
