@@ -1,4 +1,4 @@
-﻿-- AlterTable
+-- AlterTable
 ALTER TABLE "Customer" ADD COLUMN     "createdById" TEXT;
 
 -- AddForeignKey

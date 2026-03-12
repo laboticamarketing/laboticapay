@@ -4,7 +4,12 @@ import { supabase } from '../lib/supabase';
 import * as bcrypt from 'bcryptjs';
 
 export const login = async (request: FastifyRequest<{ Body: { email: string; password: string } }>, reply: FastifyReply) => {
-    const { email, password } = request.body;
+    const email = (request.body?.email ?? '').trim().toLowerCase();
+    const password = request.body?.password ?? '';
+
+    if (!email || !password) {
+        return reply.status(401).send({ message: 'Invalid email or password' });
+    }
 
     try {
         // 1. Find or Create Profile
