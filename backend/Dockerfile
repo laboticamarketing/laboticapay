@@ -1,8 +1,8 @@
-# Use Node.js LTS
-FROM node:20-alpine
+# Use Node.js LTS (Debian-based for better compatibility than Alpine)
+FROM node:20-slim
 
 # Install OpenSSL for Prisma
-RUN apk add --no-cache openssl
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -21,8 +21,8 @@ COPY . .
 # Generate Prisma Client
 RUN npx prisma generate
 
-# Build TypeScript
-RUN npm run build
+# Build TypeScript (capture output to surface errors on failure)
+RUN npm run build > build.log 2>&1; EXIT=$?; cat build.log; exit $EXIT
 
 # Production runtime
 ENV NODE_ENV=production
