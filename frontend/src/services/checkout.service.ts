@@ -100,7 +100,9 @@ export interface PaymentResult {
     billingId?: string;
     billingUrl?: string;
     pixId?: string;
+    tid?: string;
     qrCode?: string;
+    qrCodeText?: string;
     qrCodeBase64?: string;
     status?: string;
     amount?: number;

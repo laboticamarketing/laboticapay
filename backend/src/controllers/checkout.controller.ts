@@ -1,8 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { prisma } from '../lib/prisma';
-import { abacatePayService } from '../services/abacatepay.service';
 import { melhorEnvioService } from '../services/melhorenvio.service';
-import { config } from '../config/env';
 import { deleteCheckoutAddressService } from '../services/checkoutAddress.service';
 
 /**
@@ -106,201 +104,21 @@ interface PaymentBody {
 }
 
 /**
- * Public Endpoint: Process Payment via AbacatePay
- * 
- * Strategy: Creates an AbacatePay billing (link de pagamento) with the selected methods.
- * The AbacatePay hosted checkout handles card capture securely.
- * For PIX-only, we can also generate a direct QR Code.
+ * Public Endpoint: Process Payment
+ * Método de pagamento não disponível no momento (AbacatePay removido).
  */
 export const processPayment = async (request: FastifyRequest<{ Params: { id: string }, Body: PaymentBody }>, reply: FastifyReply) => {
     const { id } = request.params;
-    const { paymentMethod, customerData } = request.body;
 
     try {
         const order = await prisma.order.findUnique({
             where: { id },
-            include: {
-                customer: {
-                    include: { addresses: true }
-                },
-                items: true
-            }
         });
 
         if (!order) return reply.status(404).send({ message: 'Pedido não encontrado' });
         if (order.status === 'PAID') return reply.status(400).send({ message: 'Pedido já foi pago' });
 
-        // Calculate final amount
-        let finalAmount = Number(order.totalValue) + Number(order.shippingValue || 0);
-        if (order.discountValue) {
-            if (order.discountType === 'PERCENTAGE') {
-                finalAmount -= (Number(order.totalValue) * Number(order.discountValue) / 100);
-            } else {
-                finalAmount -= Number(order.discountValue);
-            }
-        }
-
-        // Amount in cents (AbacatePay uses centavos)
-        const amountInCents = Math.round(finalAmount * 100);
-
-        // Prepare base customer data (do nosso sistema)
-        const customer = order.customer;
-        const baseCustomer = customerData
-            ? {
-                name: customerData.name,
-                email: (customerData.email || '').trim(),
-                phone: customerData.phone,
-                cpf: customerData.cpf,
-            }
-            : customer
-                ? {
-                    name: customer.name,
-                    email: (customer.email || '').trim(),
-                    phone: customer.phone,
-                    cpf: customer.cpf || '',
-                }
-                : null;
-
-        // Helper de validação simples de e-mail
-        const isValidEmail = (email: string | null | undefined) => {
-            if (!email) return false;
-            const trimmed = email.trim();
-            return /\S+@\S+\.\S+/.test(trimmed);
-        };
-
-        // Para PIX, o cliente é opcional. Só enviamos se tiver e-mail válido.
-        const pixCustomer = baseCustomer && isValidEmail(baseCustomer.email)
-            ? {
-                name: baseCustomer.name,
-                email: baseCustomer.email,
-                cellphone: baseCustomer.phone,
-                taxId: baseCustomer.cpf || '',
-            }
-            : undefined;
-
-        // Build products array from order items
-        const products = order.items.map(item => ({
-            externalId: item.id,
-            name: item.name,
-            description: item.dosage || '',
-            quantity: 1,
-            price: item.price ? Math.round(Number(item.price) * 100) : amountInCents,
-        }));
-
-        // If items don't have individual prices, use a single product entry
-        const hasItemPrices = order.items.some(item => item.price);
-        const finalProducts = hasItemPrices ? products : [{
-            externalId: order.id,
-            name: `Pedido #${order.id.slice(-6)}`,
-            description: `${order.items.length} item(s)`,
-            quantity: 1,
-            price: amountInCents,
-        }];
-
-        // Determine base URL for redirects
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-
-        if (paymentMethod === 'PIX') {
-            // Direct PIX QR Code generation
-            const result = await abacatePayService.createPixQrCode({
-                amount: amountInCents,
-                expiresIn: 3600,
-                description: `Pedido La Botica #${order.id.slice(-6)}`,
-                customer: pixCustomer,
-                metadata: { orderId: order.id },
-            });
-
-            if (result.success) {
-                await prisma.paymentTransaction.create({
-                    data: {
-                        orderId: order.id,
-                        gatewayId: result.pixId || `pix-${Date.now()}`,
-                        type: 'PIX',
-                        status: 'PENDING',
-                        amount: finalAmount,
-                        metadata: {
-                            pixId: result.pixId,
-                            qrCode: result.qrCode,
-                        }
-                    }
-                });
-            }
-
-            return reply.send(result);
-
-        } else if (paymentMethod === 'CARD' || paymentMethod === 'BILLING') {
-            // Create AbacatePay billing (hosted checkout)
-            const methods: ('PIX' | 'CARD')[] = paymentMethod === 'CARD' ? ['CARD'] : ['PIX', 'CARD'];
-
-            // Para cobrança (CARD/BILLING), a AbacatePay exige um customer.
-            // Se não houver e-mail válido, geramos um e-mail técnico para cumprir a validação.
-            const fallbackEmailDomain = 'laboticamanipulacao.com';
-            const emailForBilling = baseCustomer && isValidEmail(baseCustomer.email)
-                ? baseCustomer.email
-                : `no-reply+${order.id}@${fallbackEmailDomain}`;
-
-            const billingCustomer = baseCustomer
-                ? {
-                    name: baseCustomer.name,
-                    email: emailForBilling,
-                    cellphone: baseCustomer.phone,
-                    taxId: baseCustomer.cpf || '',
-                }
-                : {
-                    name: 'Cliente Checkout',
-                    email: emailForBilling,
-                    cellphone: customerData?.phone || customer?.phone || '00000000000',
-                    taxId: customerData?.cpf || customer?.cpf || '',
-                };
-
-            const result = await abacatePayService.createBilling({
-                frequency: 'ONE_TIME',
-                methods,
-                products: finalProducts,
-                returnUrl: `${frontendUrl}/checkout/${order.id}`,
-                completionUrl: `${frontendUrl}/checkout/${order.id}/success`,
-                customer: billingCustomer,
-                externalId: order.id,
-                metadata: { orderId: order.id },
-            });
-
-            if (result.success) {
-                // Update PaymentLink record
-                await prisma.paymentLink.upsert({
-                    where: { orderId: order.id },
-                    update: {
-                        asaasPaymentId: result.billingId,
-                        asaasUrl: result.billingUrl,
-                        status: result.status || 'PENDING',
-                    },
-                    create: {
-                        orderId: order.id,
-                        asaasPaymentId: result.billingId,
-                        asaasUrl: result.billingUrl,
-                        status: result.status || 'PENDING',
-                    }
-                });
-
-                await prisma.paymentTransaction.create({
-                    data: {
-                        orderId: order.id,
-                        gatewayId: result.billingId || `billing-${Date.now()}`,
-                        type: paymentMethod,
-                        status: 'PENDING',
-                        amount: finalAmount,
-                        metadata: {
-                            billingId: result.billingId,
-                            billingUrl: result.billingUrl,
-                        }
-                    }
-                });
-            }
-
-            return reply.send(result);
-
-        } else {
-            return reply.status(400).send({ message: 'Método de pagamento inválido' });
-        }
+        return reply.status(501).send({ message: 'Método de pagamento não disponível no momento.' });
     } catch (error: any) {
         request.log.error(error);
         return reply.status(500).send({ message: 'Falha no pagamento', details: error.message });

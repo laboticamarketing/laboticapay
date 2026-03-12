@@ -144,10 +144,11 @@ model Order {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  items          OrderItem[]
-  notes          OrderNote[]
-  paymentLink    PaymentLink?
-  transactions   PaymentTransaction[]
+  items             OrderItem[]
+  notes             OrderNote[]
+  paymentLink       PaymentLink?
+  transactions      PaymentTransaction[]
+  redeTransactions  RedeTransaction[]
 }
 
 model OrderItem {
@@ -215,4 +216,19 @@ model WebhookEvent {
   payload     Json
   processedAt DateTime @default(now())
   status      String   // SUCCESS, FAILED, IGNORED
+}
+
+model RedeTransaction {
+  id            String   @id @default(uuid())
+  referencia    String
+  tid           String?
+  status        String   // aprovado | negado | cancelado
+  valor         Int      // em centavos
+  parcelas      Int      @default(1)
+  returnCode    String?
+  returnMessage String?
+  payload       Json?
+  orderId       String?
+  order         Order?   @relation(fields: [orderId], references: [id])
+  createdAt     DateTime @default(now())
 }

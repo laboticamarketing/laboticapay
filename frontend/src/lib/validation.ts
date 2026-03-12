@@ -69,6 +69,21 @@ export const unmask = (value?: string | null): string => {
     return value.replace(/\D/g, '');
 };
 
+/** Máscara para número do cartão (4 grupos de 4 dígitos) */
+export const maskCard = (value: string): string => {
+    const digits = value.replace(/\D/g, '').slice(0, 19);
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+};
+
+/** Máscara para validade do cartão (MM/AA) */
+export const maskCardExpiry = (value: string): string => {
+    const digits = value.replace(/\D/g, '').slice(0, 4);
+    if (digits.length >= 2) {
+        return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+    return digits;
+};
+
 /** Mantém apenas dígitos (ex.: número da casa). */
 export const maskOnlyDigits = (value: string, maxLength?: number): string => {
     let digits = value.replace(/\D/g, '');

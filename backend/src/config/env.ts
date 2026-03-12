@@ -23,15 +23,15 @@ const envSchema = z.object({
     SUPABASE_ANON_KEY: z.string(),
     SUPABASE_SERVICE_ROLE_KEY: z.string(),
 
-    // AbacatePay
-    ABACATEPAY_API_KEY: z.string().min(1),
-    ABACATEPAY_API_URL: z.string().url().default('https://api.abacatepay.com'),
-    ABACATEPAY_WEBHOOK_SECRET: z.string().optional(),
-
     // Melhor Envio
     MELHORENVIO_TOKEN: z.string().min(1),
     MELHORENVIO_URL: z.string().url().default('https://sandbox.melhorenvio.com.br/api/v2'),
     STORE_ZIP_CODE: z.string().min(8),
+
+    // Rede (e.Rede) - opcional; rotas retornam 503 se não configurado
+    REDE_PV: z.string().optional().default(''),
+    REDE_TOKEN: z.string().optional().default(''),
+    REDE_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -87,9 +87,9 @@ export const config = {
         key: env.SUPABASE_SERVICE_ROLE_KEY || '',
         anonKey: env.SUPABASE_ANON_KEY || ''
     },
-    abacatepay: {
-        apiKey: env.ABACATEPAY_API_KEY,
-        apiUrl: env.ABACATEPAY_API_URL,
-        webhookSecret: env.ABACATEPAY_WEBHOOK_SECRET || '',
-    }
+    rede: {
+        pv: env.REDE_PV ?? '',
+        token: env.REDE_TOKEN ?? '',
+        env: env.REDE_ENV,
+    },
 } as const;

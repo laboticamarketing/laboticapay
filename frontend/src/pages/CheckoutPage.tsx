@@ -13,8 +13,10 @@ import {
     Copy, Loader2, ShoppingBag, QrCode, Shield, UploadCloud, Building, Home, Building2, Eye, Edit, Truck
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { validateCpf, maskRG, maskCPF, maskCEP, maskPhone, maskOnlyDigits, formatPhoneForDisplay, validatePhone } from '@/lib/validation';
+import { validateCpf, maskRG, maskCPF, maskCEP, maskPhone, maskOnlyDigits, maskCard, maskCardExpiry, formatPhoneForDisplay, validatePhone, unmask } from '@/lib/validation';
 import { useShippingQuotes } from '@/hooks/useShippingQuotes';
+import { usePayment } from '@/hooks/usePayment';
+import { api } from '@/lib/api';
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -91,6 +93,13 @@ export default function CheckoutPage() {
     // Step 4: Pagamento
     const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'CARD' | null>(null);
     const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
+    // Campos do cartão (quando CARD)
+    const [numeroCartao, setNumeroCartao] = useState('');
+    const [nomeCartao, setNomeCartao] = useState('');
+    const [validadeCartao, setValidadeCartao] = useState('');
+    const [cvvCartao, setCvvCartao] = useState('');
+    const [parcelas, setParcelas] = useState(1);
+    const { processar: processarCartao, loading: loadingCartao } = usePayment();
 
     // Mobile resumo retrátil
     const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
@@ -328,27 +337,92 @@ export default function CheckoutPage() {
 
     const handlePayment = async () => {
         if (!orderId || !order || !paymentMethod) return;
-        setSubmitting(true);
-        try {
-            const total = order.totalValue + (order.shippingValue || 0) - (order.discountValue || 0);
-            const result = await checkoutService.processPayment(orderId, {
-                amount: Math.round(total * 100) / 100, // Make sure it's valid precision
-                paymentMethod: paymentMethod === 'PIX' ? 'PIX' : 'BILLING', // CARD goes to hosted checkou billing currently
-                customerData: { name, email, cpf, phone },
-            });
-            setPaymentResult(result);
-            if (result.success) {
-                toast.success(result.message);
-                if (result.billingUrl) {
-                    window.open(result.billingUrl, '_blank');
-                }
-            } else {
-                toast.error(result.message);
+        const effectiveShippingValue = deliveryMethod === 'PICKUP' ? 0 : (order.shippingValue || 0);
+        const total = order.totalValue + effectiveShippingValue - (order.discountValue || 0);
+        const totalCentavos = Math.round(total * 100);
+
+        if (paymentMethod === 'CARD') {
+            const rawCard = unmask(numeroCartao);
+            const rawCvv = unmask(cvvCartao);
+            const [mesVal, anoVal] = validadeCartao.split('/');
+            if (rawCard.length < 13) {
+                toast.error('Número do cartão inválido');
+                return;
             }
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Erro ao processar pagamento');
-        } finally {
-            setSubmitting(false);
+            if (!nomeCartao.trim()) {
+                toast.error('Informe o nome no cartão');
+                return;
+            }
+            if (!mesVal || !anoVal || mesVal.length !== 2 || anoVal.length !== 2) {
+                toast.error('Validade inválida (MM/AA)');
+                return;
+            }
+            if (rawCvv.length < 3) {
+                toast.error('CVV inválido');
+                return;
+            }
+            setSubmitting(true);
+            try {
+                const resultado = await processarCartao({
+                    valor: totalCentavos,
+                    referencia: orderId,
+                    orderId,
+                    numeroCartao: rawCard,
+                    cvv: rawCvv,
+                    mesValidade: mesVal,
+                    anoValidade: anoVal.length === 2 ? anoVal : anoVal.slice(-2),
+                    nomeCartao: nomeCartao.trim(),
+                    parcelas,
+                });
+                if (resultado.sucesso) {
+                    toast.success(resultado.returnMessage || 'Pagamento aprovado!');
+                    const refreshed = await checkoutService.getOrder(orderId);
+                    setOrder(refreshed);
+                } else {
+                    toast.error(resultado.returnMessage || 'Pagamento negado');
+                }
+            } catch (err: unknown) {
+                const msg = err && typeof err === 'object' && 'response' in err
+                    ? (err as { response?: { data?: { returnMessage?: string } } }).response?.data?.returnMessage
+                    : null;
+                toast.error(msg || 'Erro ao processar pagamento');
+            } finally {
+                setSubmitting(false);
+            }
+            return;
+        }
+
+        if (paymentMethod === 'PIX') {
+            setSubmitting(true);
+            try {
+                const { data } = await api.post<{ success: boolean; tid?: string; qrCodeBase64?: string; qrCodeText?: string; message?: string }>(
+                    '/pagamento/pix/criar',
+                    { valor: totalCentavos, referencia: orderId, orderId }
+                );
+                if (data.success && data.tid) {
+                    setPaymentResult({
+                        success: true,
+                        message: 'QR Code gerado. Escaneie ou copie o código.',
+                        tid: data.tid,
+                        qrCodeBase64: data.qrCodeBase64,
+                        qrCode: data.qrCodeText ?? data.qrCodeBase64,
+                        qrCodeText: data.qrCodeText,
+                    });
+                    toast.success('QR Code PIX gerado!');
+                } else {
+                    toast.error(data.message || 'Falha ao gerar QR Code PIX');
+                }
+            } catch (err: unknown) {
+                const res = err && typeof err === 'object' && 'response' in err
+                    ? (err as { response?: { data?: { message?: string; details?: { fieldErrors?: Record<string, string[]> } } } }).response?.data
+                    : null;
+                const msg = res?.message ?? null;
+                const fieldErrors = res?.details?.fieldErrors;
+                const detailMsg = fieldErrors ? Object.entries(fieldErrors).map(([k, v]) => `${k}: ${v?.join(', ')}`).join('; ') : null;
+                toast.error(detailMsg || msg || 'Erro ao gerar QR Code PIX');
+            } finally {
+                setSubmitting(false);
+            }
         }
     };
 
@@ -1250,8 +1324,61 @@ export default function CheckoutPage() {
                                                         </div>
                                                         {paymentMethod === 'CARD' && (
                                                             <div className="mt-4 pt-4 border-t border-border grid gap-3">
-                                                                <div className="p-3 bg-muted rounded text-sm text-muted-foreground text-center">
-                                                                    O pagamento será realizado no checkout seguro da AbacatePay.
+                                                                <div className="grid gap-3 sm:grid-cols-2">
+                                                                    <div className="space-y-1.5">
+                                                                        <Label className="text-sm">Número do cartão</Label>
+                                                                        <Input
+                                                                            value={numeroCartao}
+                                                                            onChange={e => setNumeroCartao(maskCard(e.target.value))}
+                                                                            placeholder="0000 0000 0000 0000"
+                                                                            maxLength={19}
+                                                                            className="min-h-[44px]"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <Label className="text-sm">Nome no cartão</Label>
+                                                                        <Input
+                                                                            value={nomeCartao}
+                                                                            onChange={e => setNomeCartao(e.target.value)}
+                                                                            placeholder="Como está no cartão"
+                                                                            className="min-h-[44px]"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="grid gap-3 sm:grid-cols-3">
+                                                                    <div className="space-y-1.5">
+                                                                        <Label className="text-sm">Validade (MM/AA)</Label>
+                                                                        <Input
+                                                                            value={validadeCartao}
+                                                                            onChange={e => setValidadeCartao(maskCardExpiry(e.target.value))}
+                                                                            placeholder="MM/AA"
+                                                                            maxLength={5}
+                                                                            className="min-h-[44px]"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <Label className="text-sm">CVV</Label>
+                                                                        <Input
+                                                                            type="password"
+                                                                            value={cvvCartao}
+                                                                            onChange={e => setCvvCartao(maskOnlyDigits(e.target.value, 4))}
+                                                                            placeholder="123"
+                                                                            maxLength={4}
+                                                                            className="min-h-[44px]"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <Label className="text-sm">Parcelas</Label>
+                                                                        <select
+                                                                            value={parcelas}
+                                                                            onChange={e => setParcelas(Number(e.target.value))}
+                                                                            className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                                        >
+                                                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => (
+                                                                                <option key={n} value={n}>{n}x de {formatCurrency(total / n)}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         )}
@@ -1289,10 +1416,18 @@ export default function CheckoutPage() {
                                                     className="bg-green-600 hover:bg-green-700 text-white font-bold flex gap-2 w-full sm:w-auto justify-center min-h-[48px] px-8 order-1 sm:order-2 text-base"
                                                     size="lg"
                                                     onClick={handlePayment}
-                                                    disabled={submitting || !paymentMethod}
+                                                    disabled={
+                                                        submitting || loadingCartao || !paymentMethod ||
+                                                        (paymentMethod === 'CARD' && (
+                                                            unmask(numeroCartao).length < 13 ||
+                                                            !nomeCartao.trim() ||
+                                                            validadeCartao.length < 5 ||
+                                                            unmask(cvvCartao).length < 3
+                                                        ))
+                                                    }
                                                     style={{ fontSize: '16px' }}
                                                 >
-                                                    {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Shield className="w-4 h-4 mr-2" />}
+                                                    {(submitting || loadingCartao) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Shield className="w-4 h-4 mr-2" />}
                                                     Pagar Agora
                                                 </Button>
                                                 <Button variant="ghost" onClick={() => setStep(2)} className="text-muted-foreground min-h-[48px] text-sm w-full sm:w-auto order-2 sm:order-1" style={{ fontSize: '14px' }} disabled={submitting}>
@@ -1402,39 +1537,53 @@ function FileText(props: any) {
 // ─── Payment Result (PIX QR Code or redirect info) ──────────────────
 
 function PaymentResultView({ result, total, order }: { result: PaymentResult; total: number; order: CheckoutOrder }) {
-    // Para PIX: assim que o QR Code for exibido, ficamos checando o status
-    // do pedido periodicamente. Quando o webhook marcar como PAID, redirecionamos
-    // automaticamente para a página de sucesso com dados do pedido.
+    const pixCode = result.qrCode ?? result.qrCodeText;
+    const hasPixQr = !!(result.qrCodeBase64 || pixCode);
+
+    // Para PIX: polling do status (consultar ou getOrder) até PAID
     useEffect(() => {
-        if (!result.qrCode) return;
+        if (!hasPixQr) return;
 
         let active = true;
-        const interval = setInterval(async () => {
+        const poll = async () => {
             try {
+                if (result.tid) {
+                    const { data } = await api.get<{ status: string }>(`/pagamento/pix/consultar/${result.tid}`);
+                    if (!active) return;
+                    if (data.status === 'PAID') {
+                        const refreshed = await checkoutService.getOrder(order.id);
+                        if (!active) return;
+                        window.location.href = `/checkout/${order.id}/success`;
+                        return;
+                    }
+                }
                 const refreshed = await checkoutService.getOrder(order.id);
                 if (!active) return;
                 if (refreshed.status === 'PAID') {
-                    clearInterval(interval);
                     window.location.href = `/checkout/${order.id}/success`;
                 }
             } catch {
                 // silencioso
             }
-        }, 5000);
+        };
+
+        const interval = setInterval(poll, 6000);
+        poll();
 
         return () => {
             active = false;
             clearInterval(interval);
         };
-    }, [result.qrCode, order.id]);
+    }, [hasPixQr, result.tid, order.id]);
+
     const copyQrCode = () => {
-        if (result.qrCode) {
-            navigator.clipboard.writeText(result.qrCode);
+        if (pixCode) {
+            navigator.clipboard.writeText(pixCode);
             toast.success('Código PIX copiado!');
         }
     };
 
-    if (result.qrCode) {
+    if (hasPixQr) {
         return (
             <div className="text-center space-y-6 max-w-md mx-auto">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-500/10">
@@ -1454,7 +1603,7 @@ function PaymentResultView({ result, total, order }: { result: PaymentResult; to
                 <div className="space-y-3">
                     <p className="text-sm font-medium">Pix Copia e Cola</p>
                     <div className="bg-muted rounded-lg p-3 text-sm text-muted-foreground break-all font-mono">
-                        {result.qrCode}
+                        {pixCode}
                     </div>
                     <Button onClick={copyQrCode} className="w-full bg-primary-500 hover:bg-primary-600 text-white" size="lg">
                         <Copy className="w-4 h-4 mr-2" /> Copiar Código
@@ -1476,7 +1625,7 @@ function PaymentResultView({ result, total, order }: { result: PaymentResult; to
                     <CreditCard className="w-8 h-8 text-primary-600" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold">Pagamento Seguro AbacatePay</h2>
+                    <h2 className="text-2xl font-bold">Pagamento Seguro</h2>
                     <p className="text-muted-foreground mt-2">Você será redirecionado para concluir o pagamento com segurança.</p>
                 </div>
                 <Button

@@ -16,6 +16,7 @@ import { customerRoutes } from './routes/customer.routes';
 import { orderRoutes } from './routes/order.routes';
 import { dashboardRoutes } from './routes/dashboard.routes';
 import { checkoutRoutes } from './routes/checkout.routes';
+import { pagamentoRoutes } from './routes/pagamento.routes';
 import { webhookRoutes } from './routes/webhook.routes';
 
 const server = Fastify({
@@ -72,18 +73,12 @@ server.register(customerRoutes, { prefix: '/customers' });
 server.register(orderRoutes, { prefix: '/orders' });
 server.register(dashboardRoutes, { prefix: '/dashboard' });
 server.register(checkoutRoutes, { prefix: '/checkout' });
+server.register(pagamentoRoutes, { prefix: '/pagamento' });
 server.register(webhookRoutes, { prefix: '/webhooks' });
 
 // Health Check
 server.get('/health', async (request, reply) => {
     return { status: 'ok', timestamp: new Date() };
-});
-
-// AbacatePay Health Check
-import { abacatePayService } from './services/abacatepay.service';
-server.get('/health/abacatepay', async (request, reply) => {
-    const result = await abacatePayService.healthCheck();
-    return reply.code(result.success ? 200 : 503).send(result);
 });
 
 // Graceful shutdown
@@ -108,7 +103,7 @@ const start = async () => {
     try {
         const host = config.server.nodeEnv === 'production' ? '0.0.0.0' : 'localhost';
         await server.listen({ port: config.server.port, host });
-        console.log(`🥑 Server is running at http://${host}:${config.server.port}`);
+        console.log(`Server is running at http://${host}:${config.server.port}`);
         console.log(`Environment: ${config.server.nodeEnv}`);
     } catch (err) {
         server.log.error(err as any);
